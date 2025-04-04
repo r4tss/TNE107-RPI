@@ -2,15 +2,15 @@ import RPi.GPIO as GPIO
 from time import sleep
 
 import os
+import sys
 import glob
 import bluetooth
-
 import re
 
 # 3 Pins to communicate with Arduino
 P1 = 17
 P2 = 27
-P3 = 22
+P3 = 23
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(P1, GPIO.OUT)
@@ -20,9 +20,7 @@ GPIO.output(P1, False)
 GPIO.output(P2, False)
 GPIO.output(P3, False)
 
-target = "D4:D2:52:ED:14:89"
-
-server_sock = bluetooth.BluetoothSocket( bluetooth.RFCOMM )
+server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
 server_sock.bind(("", bluetooth.PORT_ANY))
 server_sock.listen(1)
 
