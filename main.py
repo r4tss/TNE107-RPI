@@ -39,8 +39,11 @@ while client_sock:
     read = read.decode("utf-8").strip('\n')
     print(read)
 
-    if read == "0":    # Do nothing
-    if read == "11":   # Drive forward
+    if read == "0":      # Do nothing
+        GPIO.output(P1, False)
+        GPIO.output(P2, False)
+        GPIO.output(P3, False)
+    elif read == "11":   # Drive forward
         GPIO.output(P1, True)
         GPIO.output(P2, False)
         GPIO.output(P3, False)
@@ -68,7 +71,7 @@ while client_sock:
         GPIO.output(P1, True)
         GPIO.output(P2, True)
         GPIO.output(P3, True)
-    else:              # Do nothing
+    else:              # Do nothing if command is not recognized
         GPIO.output(P1, False)
         GPIO.output(P2, False)
         GPIO.output(P3, False)
