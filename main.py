@@ -30,7 +30,7 @@ print("Waiting for connection on RFCOMM channel %d..." % port)
 
 client_sock, client_info = server_sock.accept()
 
-print("Connected with %d" % client_info)
+print("Connected to %s." % client_info[0])
 
 while client_sock:
     read = client_sock.recv(1024)

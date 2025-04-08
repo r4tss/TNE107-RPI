@@ -17,15 +17,12 @@ def get_input() -> str:
 pi = "B8:27:EB:D1:A5:A9"
 
 sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-# sock.bind(("", bluetooth.PORT_ANY))
-
-# port = sock.getsockname()[1]
 
 print("Attempting to connect to %s..." % pi)
 
 sock.connect((pi, 1))
 
-print("Connected")
+print("Connected to %s." % pi)
 
 input = "0"
 
