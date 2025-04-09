@@ -32,18 +32,15 @@ recv_sock, client_info = server_sock.accept()
 
 print("Connected to %s." % client_info[0])
 
-send_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-send_sock.connect((client_info[0], 2))
+read = "0"
 
-print("Created sending socket to %s" % client_info[0])
-
-while read != "a":
+while read != "1000":
     read = recv_sock.recv(1024)
     read = read.decode("utf-8").strip('\n')
     print("Received: %s" % read)
 
-    send_sock.send("Acknowledge: " + read)
-    print("Sent acknowledge")
+    print(f"Sending: 'Acknowledge: {read}'")
+    client_sock.send(f"Acknowledge: {read}\n".encode()) # Remember NEW LINE for ÖS to be able to read lines. 
 
     if read == "0":      # Do nothing
         GPIO.output(P1, False)

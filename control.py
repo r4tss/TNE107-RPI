@@ -26,7 +26,7 @@ print("Connected to %s." % pi)
 
 input = "0"
 
-while input != "a":
+while input != "q":
     input = get_input()
 
     print("Sending: %s" % input)
@@ -38,6 +38,8 @@ while input != "a":
         sock.send("33")
     elif input == "k":
         sock.send("22")
+    elif input == "q":
+        sock.send("1000")
     else:
         sock.send("0")
 
