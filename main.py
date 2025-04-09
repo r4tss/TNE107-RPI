@@ -28,16 +28,21 @@ port = server_sock.getsockname()[1]
 
 print("Waiting for connection on RFCOMM channel %d..." % port)
 
-client_sock, client_info = server_sock.accept()
+recv_sock, client_info = server_sock.accept()
 
 print("Connected to %s." % client_info[0])
 
-while client_sock:
-    read = client_sock.recv(1024)
+send_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+send_sock.connect((client_info[0], 2))
+
+print("Created sending socket to %s" % client_info[0])
+
+while read != "a":
+    read = recv_sock.recv(1024)
     read = read.decode("utf-8").strip('\n')
     print("Received: %s" % read)
 
-    sock.send("Acknowledge: " + read)
+    send_sock.send("Acknowledge: " + read)
     print("Sent acknowledge")
 
     if read == "0":      # Do nothing

@@ -29,6 +29,7 @@ input = "0"
 while input != "a":
     input = get_input()
 
+    print("Sending: %s" % input)
     if input == "i":
         sock.send("11")
     elif input == "j":
@@ -39,8 +40,20 @@ while input != "a":
         sock.send("22")
     else:
         sock.send("0")
-    print(input)
+
+    read = sock.recv(1024)
+    read = read.decode("utf-8").strip('\n')
+    print("Received: '%s'" % read )
 
     time.sleep(0.1)
+
+print("Sending: %s" % input)
+sock.send(input)
+
+read = sock.recv(1024)
+read = read.decode("utf-8").strip('\n')
+print("Received: '%s'" % read )
+
+print("Shutting down...")
 
 sock.close()
