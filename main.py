@@ -35,7 +35,10 @@ print("Connected to %s." % client_info[0])
 while client_sock:
     read = client_sock.recv(1024)
     read = read.decode("utf-8").strip('\n')
-    print(read)
+    print("Received: %s" % read)
+
+    sock.send("Acknowledge: " + read)
+    print("Sent acknowledge")
 
     if read == "0":      # Do nothing
         GPIO.output(P1, False)
