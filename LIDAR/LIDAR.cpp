@@ -29,6 +29,9 @@
 #include <signal.h>
 #include <string.h>
 #include <cmath>
+#include <iostream>
+#include <fstream>
+#include <filesystem>
 
 #include "sl_lidar.h" 
 #include "sl_lidar_driver.h"
@@ -106,6 +109,13 @@ int main(int argc, const char * argv[]) {
 	bool useArgcBaudrate = false;
 
     IChannel* _channel;
+
+    std::ofstream outfile;
+    std::ofstream buf_file_o;
+    std::ifstream buf_file_i;
+    int distances[360];
+
+    int a, b;
 
     printf("Ultra simple LIDAR data grabber for SLAMTEC LIDAR.\n"
            "Version: %s\n", SL_LIDAR_SDK_VERSION);
@@ -275,16 +285,32 @@ int main(int argc, const char * argv[]) {
 
         if (SL_IS_OK(op_result)) {
             drv->ascendScanData(nodes, count);
+	    buf_file_o.open("distances_buf.txt");
             for (int pos = 0; pos < (int)count ; ++pos) {
                 int angle = std::floor((nodes[pos].angle_z_q14 * 90.f) / 16384.f);
-                float dist = nodes[pos].dist_mm_q2/4.0f;
+                int dist = nodes[pos].dist_mm_q2/4.0f;
 	        if (dist > 0.0) {
-                  printf("Angle: %i, Dist: %f\n", angle, dist);
-                }
+		  distances[angle] = dist;
+		  buf_file_o << angle << " " << distances[angle] << "\n";
+		}
             }
+
+	    buf_file_o.close();
+	    buf_file_i.open("distances_buf.txt");
+	    outfile.open("distances.txt");
+
+	    a = 0;
+	    b = 0;
+	    while (buf_file_i >> a >> b) {
+	      outfile << a << " " << b << "\n";
+	      printf("Angle: %i, Dist: %i\n", a, b);
+	    }
+
+	    buf_file_i.close();
+	    outfile.close();
         }
 
-        if (ctrl_c_pressed){ 
+        if (ctrl_c_pressed){
             break;
         }
     }
