@@ -40,7 +40,7 @@ while read != "1000":
     print("Received: %s" % read)
 
     print(f"Sending: 'Acknowledge: {read}'")
-    client_sock.send(f"Acknowledge: {read}\n".encode()) # Remember NEW LINE for ÖS to be able to read lines. 
+    recv_sock.send(f"Acknowledge: {read}\n".encode()) # Remember NEW LINE for ÖS to be able to read lines. 
 
     if read == "0":      # Do nothing
         GPIO.output(P1, False)
