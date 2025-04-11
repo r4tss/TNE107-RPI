@@ -48,6 +48,10 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
         str = f"{s.readline().decode('utf-8').strip('\n')}"
 
         if "apg: x:" in str:
-            print(str.replace("apg: ", ""))
+            str = str.replace("apg: ", "")
+            print(str)
+            with open("posititon.txt", "w") as f:
+                f.write(str + '\n')
+                f.close()
 
 print("Shutting down serial communication")
