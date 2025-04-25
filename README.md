@@ -1,9 +1,5 @@
 # TNE107-RPI
 
-## control.py
-
-This control program is not needed for operation and is strictly used to test implementation. 
-
 ## bt.py
 
 This program controls the Bluetooth behaviour of the system. 
