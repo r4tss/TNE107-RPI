@@ -1,87 +1,86 @@
-import RPi.GPIO as GPIO
+import os
+import subprocess
+import signal
+import serial
+import select
 from time import sleep
 
-import os
-import sys
-import glob
-import bluetooth
-import re
+BluetoothProcess = subprocess.Popen(["python", "-u", "bt.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
 
-# 3 Pins to communicate with Arduino
-P1 = 17
-P2 = 27
-P3 = 23
+# Waiting on connection
+print(BluetoothProcess.stdout.readline().strip())
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(P1, GPIO.OUT)
-GPIO.setup(P2, GPIO.OUT)
-GPIO.setup(P3, GPIO.OUT)
-GPIO.output(P1, False)
-GPIO.output(P2, False)
-GPIO.output(P3, False)
+# Connected?
+# Bluetooth output
+bto = BluetoothProcess.stdout.readline().strip()
+print(bto)
 
-server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-server_sock.bind(("", bluetooth.PORT_ANY))
-server_sock.listen(1)
+newCommand = False
+rightTurnIndex = 5
+rightTurn = 0
+leftTurnIndex = 2
+leftTurn = 0
 
-port = server_sock.getsockname()[1]
+if bto.find("Connected") != -1:
+    # Open serial port to Arduino Nano
+    NANO = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
 
-print("Waiting for connection on RFCOMM channel %d..." % port)
+    # LIDAR Process Code
+    LIDARProcess = subprocess.Popen(["./LIDARProg", "--channel", "--serial", "/dev/ttyUSB1", "460800"], stdout=open(os.devnull, 'wb'))
+    print(f"LIDAR PID: {LIDARProcess.pid}")
 
-recv_sock, client_info = server_sock.accept()
+    # DWM Process Code
+    DWMProcess = subprocess.Popen(["python", "DWM.py"], stdout=open(os.devnull, 'wb'))
+    print(f"DWM PID: {DWMProcess.pid}")
+    
+    while bto != "1000":
+        ready, _, _ = select.select([BluetoothProcess.stdout], [], [], 0.01)
 
-print("Connected to %s." % client_info[0])
+        if ready:
+            bto = BluetoothProcess.stdout.readline().strip()
+            newCommand = True
+        else:
+            newCommand = False
 
-read = "0"
+        # Send commands to Arduino based on bto
+        if rightTurn > 0:
+            NANO.write(b"Right\n")
+            rightTurn = rightTurn - 1
+            if rightTurn == 0:
+                NANO.write(b"00")
 
-while read != "1000":
-    read = recv_sock.recv(1024)
-    read = read.decode("utf-8").strip('\n')
-    print("Received: %s" % read)
+        if leftTurn > 0:
+            NANO.write(b"Left\n")
+            leftTurn = leftTurn - 1
+            if leftTurn == 0:
+                NANO.write(b"00")
 
-    print(f"Sending: 'Acknowledge: {read}'")
-    recv_sock.send(f"Acknowledge: {read}\n".encode()) # Remember NEW LINE for ÖS to be able to read lines. 
+        if newCommand:
+            if bto == "11":
+                NANO.write(b"Forward\n")
+            elif bto == "22":
+                NANO.write(b"Backward\n")
+            elif bto == "33":
+                # NANO.write(b"Right\n")
+                rightTurn = rightTurnIndex
+                leftTurn = 0
+            elif bto == "44":
+                # NANO.write(b"Left\n")
+                leftTurn = leftTurnIndex
+                rightTurn = 0
+            elif bto == "0":
+                NANO.write(b"Stop\n")
 
-    if read == "0":      # Do nothing
-        GPIO.output(P1, False)
-        GPIO.output(P2, False)
-        GPIO.output(P3, False)
-    elif read == "11":   # Drive forward
-        GPIO.output(P1, True)
-        GPIO.output(P2, False)
-        GPIO.output(P3, False)
-    elif read == "22": # Drive backward
-        GPIO.output(P1, False)
-        GPIO.output(P2, True)
-        GPIO.output(P3, False)
-    elif read == "33": # Rotate right, 90 degrees
-        GPIO.output(P1, True)
-        GPIO.output(P2, True)
-        GPIO.output(P3, False)
-    elif read == "44": # Rotate left, 90 degrees
-        GPIO.output(P1, False)
-        GPIO.output(P2, False)
-        GPIO.output(P3, True)
-    elif read == "55": # Rotate right, 45 degrees
-        GPIO.output(P1, True)
-        GPIO.output(P2, False)
-        GPIO.output(P3, True)
-    elif read == "66": # Rotate left, 45 degrees
-        GPIO.output(P1, False)
-        GPIO.output(P2, True)
-        GPIO.output(P3, True)
-    elif read == "98": # Turn on light at landmark
-        GPIO.output(P1, True)
-        GPIO.output(P2, True)
-        GPIO.output(P3, True)
-    else:              # Do nothing if command is not recognized
-        GPIO.output(P1, False)
-        GPIO.output(P2, False)
-        GPIO.output(P3, False)
+    
+    print("Terminating Serial port to Arduino Nano")
+    NANO.write(b"Stop\n")
 
-GPIO.output(P1, False)
-GPIO.output(P2, False)
-GPIO.output(P3, False)
+    print("Terminating LIDAR process")
+    os.kill(LIDARProcess.pid, signal.SIGINT)
 
-print("Shutting down...")
-server_sock.close()
+    print("Terminating DWM Process")
+    os.kill(DWMProcess.pid, signal.SIGINT)
+
+print("Terminating Bluetooth Process")
+os.kill(BluetoothProcess.pid, signal.SIGINT)
+

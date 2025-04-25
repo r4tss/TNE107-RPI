@@ -45,12 +45,12 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
         sleep(0.1)
         s.write(b"\r")
 
-        str = f"{s.readline().decode('utf-8').strip('\n')}"
+        str = s.readline().decode('utf-8').strip('\n')
 
         if "apg: x:" in str:
             str = str.replace("apg: ", "")
             print(str)
-            with open("posititon.txt", "w") as f:
+            with open("position.txt", "w") as f:
                 f.write(str + '\n')
                 f.close()
 
