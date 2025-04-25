@@ -4,10 +4,14 @@ import signal
 import serial
 import select
 from time import sleep
+# import I2C_LCD_driver as LCD
 
-BluetoothProcess = subprocess.Popen(["python", "-u", "bt.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
+# AGVlcd = LCD.lcd()
+
+BluetoothProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/bt.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
 
 # Waiting on connection
+# AGVlcd.lcd_display_string("Waiting for Bluetooth connection...", 1)
 print(BluetoothProcess.stdout.readline().strip())
 
 # Connected?
@@ -15,26 +19,32 @@ print(BluetoothProcess.stdout.readline().strip())
 bto = BluetoothProcess.stdout.readline().strip()
 print(bto)
 
+
 newCommand = False
-rightTurnIndex = 5
+rightTurnIndex = 50
 rightTurn = 0
-leftTurnIndex = 2
+leftTurnIndex = 20
 leftTurn = 0
 
 if bto.find("Connected") != -1:
+    # AGVlcd.lcd_clear()
+    # AGVlcd.lcd_display_string(bto)
+
     # Open serial port to Arduino Nano
     NANO = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
 
     # LIDAR Process Code
-    LIDARProcess = subprocess.Popen(["./LIDARProg", "--channel", "--serial", "/dev/ttyUSB1", "460800"], stdout=open(os.devnull, 'wb'))
+    LIDARProcess = subprocess.Popen(["./home/pi/TNE107-RPI/LIDARProg", "--channel", "--serial", "/dev/ttyUSB1", "460800"], stdout=open(os.devnull, 'wb'))
     print(f"LIDAR PID: {LIDARProcess.pid}")
 
     # DWM Process Code
-    DWMProcess = subprocess.Popen(["python", "DWM.py"], stdout=open(os.devnull, 'wb'))
+    DWMProcess = subprocess.Popen(["python", "/home/pi/TNE107-RPI/DWM.py"], stdout=open(os.devnull, 'wb'))
     print(f"DWM PID: {DWMProcess.pid}")
     
+    # sleep(3)
+    
     while bto != "1000":
-        ready, _, _ = select.select([BluetoothProcess.stdout], [], [], 0.01)
+        ready, _, _ = select.select([BluetoothProcess.stdout], [], [], 0.001)
 
         if ready:
             bto = BluetoothProcess.stdout.readline().strip()
@@ -70,6 +80,8 @@ if bto.find("Connected") != -1:
                 rightTurn = 0
             elif bto == "0":
                 NANO.write(b"Stop\n")
+
+        # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETEION?????)
 
     
     print("Terminating Serial port to Arduino Nano")
