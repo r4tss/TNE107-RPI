@@ -34,21 +34,22 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
 
     s.write(b"aurs ")
     sleep(0.1)
-    s.write(b"10 20")
+    s.write(b"10 10")
     sleep(0.1)
     s.write(b'\r')
     print("Set update rate to 1 1")
 
-    while True:
-        sleep(0.1)
-        s.write(b"apg")
-        sleep(0.1)
-        s.write(b"\r")
+    sleep(0.1)
+    s.write(b"lep")
+    sleep(0.1)
+    s.write(b"\r")
+    sleep(0.1)
 
+    while True:
         str = s.readline().decode('utf-8').strip('\n')
 
-        if "apg: x:" in str:
-            str = str.replace("apg: ", "")
+        if "POS," in str:
+            str = str.replace("POS,", "")
             print(str)
             with open("position.txt", "w") as f:
                 f.write(str + '\n')
