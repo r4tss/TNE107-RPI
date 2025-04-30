@@ -12,7 +12,6 @@ sleep(2)
 BluetoothProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/bt.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
 
 # Waiting on connection
-# AGVlcd.lcd_display_string("Waiting for Bluetooth connection...", 1)
 NANO.write(b"Bluetooth up\n")
 print(BluetoothProcess.stdout.readline().strip())
 
@@ -21,12 +20,13 @@ print(BluetoothProcess.stdout.readline().strip())
 bto = BluetoothProcess.stdout.readline().strip()
 print(bto)
 
-
 newCommand = False
 rightTurnIndex = 50
 rightTurn = 0
 leftTurnIndex = 20
 leftTurn = 0
+
+dwm = ""
 
 if bto.find("Connected") != -1:
     nanoBtMessage = "Bluetooth connected " + bto[13:].translate({ord(c): None for c in ':'}) # Address to send to nano
@@ -38,19 +38,22 @@ if bto.find("Connected") != -1:
     print(f"LIDAR PID: {LIDARProcess.pid}")
 
     # DWM Process Code
-    DWMProcess = subprocess.Popen(["python", "/home/pi/TNE107-RPI/DWM.py"], stdout=open(os.devnull, 'wb'))
+    DWMProcess = subprocess.Popen(["python", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
     print(f"DWM PID: {DWMProcess.pid}")
     
-    # sleep(3)
-    
     while bto != "1000":
-        ready, _, _ = select.select([BluetoothProcess.stdout], [], [], 0.001)
+        btReady, _, _ = select.select([BluetoothProcess.stdout], [], [], 0.0005)
 
-        if ready:
+        if btReady:
             bto = BluetoothProcess.stdout.readline().strip()
             newCommand = True
         else:
             newCommand = False
+
+        dwmReady, _, _ = select.select([DWMProcess.stdout], [], [], 0.0005)
+
+        if dwmReady:
+            dwm = DWMProcess.stdout.readline()
 
         # Send commands to Arduino based on bto
         if rightTurn > 0:
@@ -67,8 +70,10 @@ if bto.find("Connected") != -1:
 
         if newCommand:
             if bto == "11":
+                # Store current position => old pos
                 NANO.write(b"Forward\n")
             elif bto == "22":
+                # Store current position => old pos
                 NANO.write(b"Backward\n")
             elif bto == "33":
                 # NANO.write(b"Right\n")
@@ -79,6 +84,8 @@ if bto.find("Connected") != -1:
                 leftTurn = leftTurnIndex
                 rightTurn = 0
             else:
+                # Store current position => cur pos
+                # Calculate angle from old pos, a = math.atan2(y, x) + math.pi
                 NANO.write(b"Stop\n")
 
         # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETEION?????)

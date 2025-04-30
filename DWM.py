@@ -1,9 +1,11 @@
 import serial
 from time import sleep
 
+updRate = "10 10" # Active Idle
+
 with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
 
-    print(f"Opened serial port {s.name}")
+    # print(f"Opened serial port {s.name}")
 
     sleep(1)
     s.write(b"\r")
@@ -15,14 +17,14 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
     s.write(b'0x1234')
     sleep(0.1)
     s.write(b'\r')
-    print(f"Set PAN ID to 0x1234")
+    # print(f"Set PAN ID to 0x1234")
 
     sleep(1)
     
     s.write(b'nmt')
     sleep(0.1)
     s.write(b'\r')
-    print("Configured node as tag")
+    # print("Configured node as tag")
 
     sleep(1)
 
@@ -34,10 +36,10 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
 
     s.write(b"aurs ")
     sleep(0.1)
-    s.write(b"10 10")
+    s.write(updRate.encode())
     sleep(0.1)
     s.write(b'\r')
-    print("Set update rate to 1 1")
+    # print("Set update rate to " + updRate)
 
     sleep(0.1)
     s.write(b"lep")
