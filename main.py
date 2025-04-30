@@ -124,7 +124,6 @@ if bto.find("Connected") != -1:
                 desDir = 0
             else:
                 # Store current position => cur pos
-                # Calculate angle from old pos, a = math.atan2(y, x) + math.pi
                 curX = float(x) * 1000
                 curY = float(y) * 1000
 

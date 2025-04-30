@@ -1,4 +1,3 @@
-import RPi.GPIO as GPIO
 from time import sleep
 
 import os
@@ -38,9 +37,10 @@ while read != "1000":
     with open("position.txt", "r") as f:
         for line in f:
             line = line.strip("\n")
-            x, y, z, qf = line.split()
-            x = x.translate({ord(c): None for c in 'x:'})
-            y = y.translate({ord(c): None for c in 'y:'})
+            x, y, z, qf = line.split(",")
+            x = float(x) * 1000
+            y = float(y) * 1000
+            print(f"x: {x}, y: {y}")
             recv_sock.send(f"{x}, {y}, ".encode())
             # message = message + f"{x}, {y}, "
         f.close()
@@ -67,15 +67,6 @@ while read != "1000":
     recv_sock.send(f"{distances[i]}\n".encode())
     # message = message + f"{distances[360]}\n"
     # recv_sock.send(message.encode())
-
-
-    # Send LIDAR data
-    # if read == "77":
-    #     # Remove for KTS
-    #     recv_sock.send("EOD\n".encode())
-
-    # Send DWM data
-    # if read == "88":
 
 print("Shutting down...")
 server_sock.close()
