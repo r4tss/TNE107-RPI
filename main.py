@@ -4,14 +4,16 @@ import signal
 import serial
 import select
 from time import sleep
-# import I2C_LCD_driver as LCD
 
-# AGVlcd = LCD.lcd()
+# Open serial port to Arduino Nano
+NANO = serial.Serial('/dev/ttyUSB1', 9600, timeout=1)
+sleep(2)
 
 BluetoothProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/bt.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
 
 # Waiting on connection
 # AGVlcd.lcd_display_string("Waiting for Bluetooth connection...", 1)
+NANO.write(b"Bluetooth up\n")
 print(BluetoothProcess.stdout.readline().strip())
 
 # Connected?
@@ -27,14 +29,12 @@ leftTurnIndex = 20
 leftTurn = 0
 
 if bto.find("Connected") != -1:
-    # AGVlcd.lcd_clear()
-    # AGVlcd.lcd_display_string(bto)
-
-    # Open serial port to Arduino Nano
-    NANO = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+    nanoBtMessage = "Bluetooth connected " + bto[13:].translate({ord(c): None for c in ':'}) # Address to send to nano
+    NANO.write(nanoBtMessage.encode())
+    print(nanoBtMessage)
 
     # LIDAR Process Code
-    LIDARProcess = subprocess.Popen(["./home/pi/TNE107-RPI/LIDARProg", "--channel", "--serial", "/dev/ttyUSB1", "460800"], stdout=open(os.devnull, 'wb'))
+    LIDARProcess = subprocess.Popen(["/home/pi/TNE107-RPI/LIDARProg", "--channel", "--serial", "/dev/ttyUSB0", "460800"], stdout=open(os.devnull, 'wb'))
     print(f"LIDAR PID: {LIDARProcess.pid}")
 
     # DWM Process Code
@@ -78,14 +78,16 @@ if bto.find("Connected") != -1:
                 # NANO.write(b"Left\n")
                 leftTurn = leftTurnIndex
                 rightTurn = 0
-            elif bto == "0":
+            else:
                 NANO.write(b"Stop\n")
 
         # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETEION?????)
 
     
     print("Terminating Serial port to Arduino Nano")
-    NANO.write(b"Stop\n")
+    NANO.write(b"Closing down\n")
+    sleep(1)
+    NANO.close()
 
     print("Terminating LIDAR process")
     os.kill(LIDARProcess.pid, signal.SIGINT)
