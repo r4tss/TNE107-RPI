@@ -4,6 +4,7 @@ import signal
 import serial
 import select
 from time import sleep
+import math
 
 # Open serial port to Arduino Nano
 NANO = serial.Serial('/dev/ttyUSB1', 9600, timeout=1)
@@ -21,12 +22,29 @@ bto = BluetoothProcess.stdout.readline().strip()
 print(bto)
 
 newCommand = False
-rightTurnIndex = 50
+rightTurnIndexN = 100
+rightTurnIndexF = 50
+rightTurnIndexR = 0
 rightTurn = 0
-leftTurnIndex = 20
+leftTurnIndexN = 100
+leftTurnIndexF = 50
 leftTurn = 0
 
+angle = 0.0
+
 dwm = ""
+x = ""
+y = ""
+
+curX = 0
+curY = 0
+oldX = 0
+oldY = 0
+backward = False
+
+oldDir = 0.0
+curDir = 0.0
+desDir = 0.0
 
 if bto.find("Connected") != -1:
     nanoBtMessage = "Bluetooth connected " + bto[13:].translate({ord(c): None for c in ':'}) # Address to send to nano
@@ -38,8 +56,10 @@ if bto.find("Connected") != -1:
     print(f"LIDAR PID: {LIDARProcess.pid}")
 
     # DWM Process Code
-    DWMProcess = subprocess.Popen(["python", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
+    DWMProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
     print(f"DWM PID: {DWMProcess.pid}")
+
+    sleep(5)
     
     while bto != "1000":
         btReady, _, _ = select.select([BluetoothProcess.stdout], [], [], 0.0005)
@@ -53,7 +73,11 @@ if bto.find("Connected") != -1:
         dwmReady, _, _ = select.select([DWMProcess.stdout], [], [], 0.0005)
 
         if dwmReady:
-            dwm = DWMProcess.stdout.readline()
+            dwm = DWMProcess.stdout.readline().strip("\n")
+            x, y, z, qf = dwm.split(",")
+            #print("Quality factor: " + qf)
+            # if float(qf) > 80:
+            print(x + ", " + y)
 
         # Send commands to Arduino based on bto
         if rightTurn > 0:
@@ -71,24 +95,51 @@ if bto.find("Connected") != -1:
         if newCommand:
             if bto == "11":
                 # Store current position => old pos
+                oldX = float(x) * 1000
+                oldY = float(y) * 1000
+                backward = False
                 NANO.write(b"Forward\n")
             elif bto == "22":
+                oldX = float(x) * 1000
+                oldY = float(y) * 1000
+                backward = True
                 # Store current position => old pos
                 NANO.write(b"Backward\n")
             elif bto == "33":
                 # NANO.write(b"Right\n")
-                rightTurn = rightTurnIndex
+                rightTurn = rightTurnIndexN
                 leftTurn = 0
+                desDir = desDir + 90
+                if desDir >= 360:
+                    desDir = desDir - 360
             elif bto == "44":
                 # NANO.write(b"Left\n")
-                leftTurn = leftTurnIndex
+                leftTurn = leftTurnIndexN
                 rightTurn = 0
+                desDir = desDir - 90
+                if desDir < 0:
+                    desDir = desDir + 360
+            elif bto == "420":
+                print("reset")
+                desDir = 0
             else:
                 # Store current position => cur pos
                 # Calculate angle from old pos, a = math.atan2(y, x) + math.pi
+                curX = float(x) * 1000
+                curY = float(y) * 1000
+
+                oldDir = curDir
+
+                curDir = (math.atan2(curY - oldY, curX - oldX) + math.pi) * (180/math.pi)
+                if backward == True:
+                    a = a - 180
+
+                print(f"Current direction: {curDir}")
+                print(f"Old Direction: {oldDir}")
+                print(f"Direction difference: {(curDir - oldDir) / 100}")
                 NANO.write(b"Stop\n")
 
-        # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETEION?????)
+        # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETETION?????)
 
     
     print("Terminating Serial port to Arduino Nano")
@@ -105,3 +156,4 @@ if bto.find("Connected") != -1:
 print("Terminating Bluetooth Process")
 os.kill(BluetoothProcess.pid, signal.SIGINT)
 
+def calc_turn(desiredDirection, currentDirection):
