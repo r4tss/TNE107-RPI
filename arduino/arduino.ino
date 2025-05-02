@@ -16,6 +16,9 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 int emptySpace = 0;
 
 void setup() {
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, HIGH);
+
   pinMode(D1, OUTPUT);
   pinMode(D2, OUTPUT);
   pinMode(D3, OUTPUT);
@@ -24,9 +27,6 @@ void setup() {
   digitalWrite(D2, LOW);
   digitalWrite(D3, LOW);
   digitalWrite(D4, LOW);
-
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
 
   Serial.begin(115200);
 

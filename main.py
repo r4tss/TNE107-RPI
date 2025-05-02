@@ -5,12 +5,20 @@ import serial
 import select
 from time import sleep
 import math
+import RPi.GPIO as GPIO
+
+LED = 17 # Light emitting diode
+PT = 27 # Phototransistor
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(PT, GPIO.IN)
+GPIO.setup(LED, GPIO.OUT)
 
 # Open serial port to Arduino Nano
-NANO = serial.Serial('/dev/ttyUSB1', 9600, timeout=1)
+NANO = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
 sleep(2)
 
-BluetoothProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/bt.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
+BluetoothProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/bt.py"], stdout=subprocess.PIPE, text=True)
 
 # Waiting on connection
 NANO.write(b"Bluetooth up\n")
@@ -47,6 +55,7 @@ curDir = 0.0
 desDir = 0.0
 
 if bto.find("Connected") != -1:
+    GPIO.output(LED, True)
     nanoBtMessage = "Bluetooth connected " + bto[13:].translate({ord(c): None for c in ':'}) # Address to send to nano
     NANO.write(nanoBtMessage.encode())
     print(nanoBtMessage)
@@ -56,12 +65,13 @@ if bto.find("Connected") != -1:
     print(f"LIDAR PID: {LIDARProcess.pid}")
 
     # DWM Process Code
-    DWMProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
+    DWMProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, text=True)
     print(f"DWM PID: {DWMProcess.pid}")
 
     sleep(5)
     
     while bto != "1000":
+        print(GPIO.input(PD))
         btReady, _, _ = select.select([BluetoothProcess.stdout], [], [], 0.0005)
 
         if btReady:
