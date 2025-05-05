@@ -103,6 +103,7 @@ if bto.find("Connected") != -1:
                 NANO.write(b"00")
 
         if newCommand:
+            print(f"Command: {bto}")
             if bto == "11":
                 # Store current position => old pos
                 oldX = float(x) * 1000
