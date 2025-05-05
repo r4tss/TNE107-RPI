@@ -115,30 +115,30 @@ if bto.find("Connected") != -1:
                 # Store current position => old pos
                 NANO.write(b"Backward\n")
             elif bto == "33":
-                curDir = curDir + 90
-                if curDir >= 360:
-                    curDir = curDir - 360
+                curDir = curDir - 90
+                if curDir < 360:
+                    curDir = curDir + 360
                 NANO.write(b"Right\n")
                 sleep(0.95)
                 NANO.write(b"Stop\n")
             elif bto == "44":
-                curDir = curDir - 90
-                if curDir < 0:
-                    curDir = curDir + 360
+                curDir = curDir + 90
+                if curDir >= 360:
+                    curDir = curDir - 360
                 NANO.write(b"Left\n")
                 sleep(0.9)
                 NANO.write(b"Stop\n")
             elif bto == "55":
-                curDir = curDir + 45
-                if curDir >= 360:
-                    curDir = curDir - 360
+                curDir = curDir - 45
+                if curDir < 360:
+                    curDir = curDir + 360
                 NANO.write(b"Left\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
             elif bto == "66":
-                curDir = curDir - 45
-                if curDir < 0:
-                    curDir = curDir + 360
+                curDir = curDir + 45
+                if curDir >= 0:
+                    curDir = curDir - 360
                 NANO.write(b"Left\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
