@@ -13,6 +13,7 @@ PT = 27 # Phototransistor
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PT, GPIO.IN)
 GPIO.setup(LED, GPIO.OUT)
+GPIO.output(LED, False)
 
 # Open serial port to Arduino Nano
 NANO = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
@@ -50,9 +51,7 @@ oldX = 0
 oldY = 0
 backward = False
 
-oldDir = 0.0
-curDir = 0.0
-desDir = 0.0
+curDir = 0
 
 if bto.find("Connected") != -1:
     GPIO.output(LED, True)
@@ -71,7 +70,7 @@ if bto.find("Connected") != -1:
     sleep(5)
     
     while bto != "1000":
-        print(GPIO.input(PD))
+        #print(GPIO.input(PT))
         btReady, _, _ = select.select([BluetoothProcess.stdout], [], [], 0.0005)
 
         if btReady:
@@ -105,48 +104,63 @@ if bto.find("Connected") != -1:
         if newCommand:
             if bto == "11":
                 # Store current position => old pos
-                oldX = float(x) * 1000
-                oldY = float(y) * 1000
+                # oldX = float(x) * 1000
+                # oldY = float(y) * 1000
                 backward = False
                 NANO.write(b"Forward\n")
             elif bto == "22":
-                oldX = float(x) * 1000
-                oldY = float(y) * 1000
+                # oldX = float(x) * 1000
+                # oldY = float(y) * 1000
                 backward = True
                 # Store current position => old pos
                 NANO.write(b"Backward\n")
             elif bto == "33":
-                # NANO.write(b"Right\n")
-                rightTurn = rightTurnIndexN
-                leftTurn = 0
-                desDir = desDir + 90
-                if desDir >= 360:
-                    desDir = desDir - 360
+                curDir = curDir + 90
+                if curDir >= 360:
+                    curDir = curDir - 360
+                NANO.write(b"Right\n")
+                sleep(0.95)
+                NANO.write(b"Stop\n")
             elif bto == "44":
-                # NANO.write(b"Left\n")
-                leftTurn = leftTurnIndexN
-                rightTurn = 0
-                desDir = desDir - 90
-                if desDir < 0:
-                    desDir = desDir + 360
+                curDir = curDir - 90
+                if curDir < 0:
+                    curDir = curDir + 360
+                NANO.write(b"Left\n")
+                sleep(0.9)
+                NANO.write(b"Stop\n")
+            elif bto == "55":
+                curDir = curDir + 45
+                if curDir >= 360:
+                    curDir = curDir - 360
+                NANO.write(b"Left\n")
+                sleep(0.45)
+                NANO.write(b"Stop\n")
+            elif bto == "66":
+                curDir = curDir - 45
+                if curDir < 0:
+                    curDir = curDir + 360
+                NANO.write(b"Left\n")
+                sleep(0.45)
+                NANO.write(b"Stop\n")
             elif bto == "420":
                 print("reset")
                 desDir = 0
             else:
                 # Store current position => cur pos
-                curX = float(x) * 1000
-                curY = float(y) * 1000
+                # curX = float(x) * 1000
+                # curY = float(y) * 1000
 
-                oldDir = curDir
+                # oldDir = curDir
 
-                curDir = (math.atan2(curY - oldY, curX - oldX) + math.pi) * (180/math.pi)
-                if backward == True:
-                    a = a - 180
-
+                # curDir = (math.atan2(curY - oldY, curX - oldX) + math.pi) * (180/math.pi)
+                # if backward == True:
+                #     a = a - 180
                 print(f"Current direction: {curDir}")
-                print(f"Old Direction: {oldDir}")
-                print(f"Direction difference: {(curDir - oldDir) / 100}")
                 NANO.write(b"Stop\n")
+
+            with open("angle.txt", "w") as f:
+                f.write(f"{curDir}" + '\n')
+                f.close()
 
         # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETETION?????)
 
@@ -165,4 +179,4 @@ if bto.find("Connected") != -1:
 print("Terminating Bluetooth Process")
 os.kill(BluetoothProcess.pid, signal.SIGINT)
 
-def calc_turn(desiredDirection, currentDirection):
+# def calc_turn(desiredDirection, currentDirection):

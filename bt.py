@@ -26,7 +26,9 @@ while read != "1000":
     read = read.decode("utf-8").strip('\n')
     print(f"{read}\r")
 
-    message = ""
+    sleep(1)
+
+    print("0\r")
 
     # print(f"Sending: 'Acknowledge: {read}'")
     # Acknowledge ÖS command
@@ -38,15 +40,21 @@ while read != "1000":
         for line in f:
             line = line.strip("\n")
             x, y, z, qf = line.split(",")
-            x = float(x) * 1000
-            y = float(y) * 1000
+            x = int(float(x) * 1000)
+            y = int(float(y) * 1000)
             print(f"x: {x}, y: {y}")
             recv_sock.send(f"{x}, {y}, ".encode())
             # message = message + f"{x}, {y}, "
         f.close()
 
     # Send angle data
-    recv_sock.send("0, ".encode())
+    with open("angle.txt", "r") as f:
+        for line in f:
+            angle = line.strip("\n")
+            print(angle)
+            recv_sock.send(f"{angle}, ".encode())
+
+    recv_sock.send("0, ".encode()) # Near goal
     # message = message + "0, "
 
     # Send LIDAR data
