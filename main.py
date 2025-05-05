@@ -52,6 +52,7 @@ oldY = 0
 backward = False
 
 curDir = 0
+desDir = 0
 
 if bto.find("Connected") != -1:
     GPIO.output(LED, True)
@@ -104,41 +105,53 @@ if bto.find("Connected") != -1:
         if newCommand:
             if bto == "11":
                 # Store current position => old pos
-                # oldX = float(x) * 1000
-                # oldY = float(y) * 1000
+                oldX = float(x) * 1000
+                oldY = float(y) * 1000
                 backward = False
                 NANO.write(b"Forward\n")
             elif bto == "22":
-                # oldX = float(x) * 1000
-                # oldY = float(y) * 1000
+                oldX = float(x) * 1000
+                oldY = float(y) * 1000
                 backward = True
                 # Store current position => old pos
                 NANO.write(b"Backward\n")
             elif bto == "33":
-                curDir = curDir - 90
-                if curDir < 360:
-                    curDir = curDir + 360
+                desDir = desDir - 90
+                if desDir < 360:
+                    desDir = desDir + 360
+
+                curDir = desDir
+                    
                 NANO.write(b"Right\n")
                 sleep(0.95)
                 NANO.write(b"Stop\n")
             elif bto == "44":
-                curDir = curDir + 90
-                if curDir >= 360:
-                    curDir = curDir - 360
+                desDir = desDir + 90
+                if desDir >= 360:
+                    desDir = desDir - 360
+
+                curDir = desDir
+                    
                 NANO.write(b"Left\n")
                 sleep(0.9)
                 NANO.write(b"Stop\n")
             elif bto == "55":
-                curDir = curDir - 45
-                if curDir < 360:
-                    curDir = curDir + 360
+                desDir = desDir - 45
+                if desDir < 360:
+                    desDir = desDir + 360
+
+                curDir = desDir
+                    
                 NANO.write(b"Left\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
             elif bto == "66":
-                curDir = curDir + 45
-                if curDir >= 0:
-                    curDir = curDir - 360
+                desDir = desDir + 45
+                if desDir >= 0:
+                    desDir = desDir - 360
+                
+                curDir = desDir
+                
                 NANO.write(b"Left\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
@@ -158,9 +171,11 @@ if bto.find("Connected") != -1:
                 print(f"Current direction: {curDir}")
                 NANO.write(b"Stop\n")
 
-            with open("angle.txt", "w") as f:
-                f.write(f"{curDir}" + '\n')
-                f.close()
+        with open("angle.txt", "w") as f:
+            f.write(f"{curDir}" + '\n')
+            f.close()
+
+        
 
         # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETETION?????)
 
