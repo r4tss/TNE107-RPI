@@ -118,7 +118,7 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Backward\n")
             elif bto == "33":
                 desDir = desDir - 90
-                if desDir < 360:
+                if desDir < 0:
                     desDir = desDir + 360
 
                 curDir = desDir
@@ -138,7 +138,7 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
             elif bto == "55":
                 desDir = desDir - 45
-                if desDir < 360:
+                if desDir < 0:
                     desDir = desDir + 360
 
                 curDir = desDir
@@ -148,7 +148,7 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
             elif bto == "66":
                 desDir = desDir + 45
-                if desDir >= 0:
+                if desDir >= 360:
                     desDir = desDir - 360
                 
                 curDir = desDir
