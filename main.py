@@ -143,7 +143,7 @@ if bto.find("Connected") != -1:
 
                 curDir = desDir
                     
-                NANO.write(b"Left\n")
+                NANO.write(b"Right\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
             elif bto == "66":
