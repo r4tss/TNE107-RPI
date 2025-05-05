@@ -75,7 +75,7 @@ while read != "1000":
         # print(f"({i}, {distances[i]})")
         recv_sock.send(f"{distances[i]}, ".encode())
         # message = message + f"{distances[i]}, "
-    recv_sock.send(f"{distances[i]}\n".encode())
+    recv_sock.send(f"{distances[360]}\n".encode())
     # message = message + f"{distances[360]}\n"
     # recv_sock.send(message.encode())
 
