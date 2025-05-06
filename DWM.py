@@ -1,5 +1,32 @@
 import serial
 from time import sleep
+from filterpy.kalman import KalmanFilter
+
+x_mu = -0.02163601775523146
+x_std = 0.07074315964054628
+y_mu = 0.02645106742760512
+y_std = 0.07415316805017082
+
+kf = KalmanFilter(dim_x=2, dim_z=2)
+
+# Initial position
+kf.x = np.array([0.],
+                [0.])
+
+# State transition matrix
+kf.F = np.array([1., 0.],
+                [0., 1.])
+
+# Measurement function
+kf.H = np.array([1., 0.],
+                [0., 1.])
+
+# Covariance matrix
+kf.P = np.array([x_std**2, 0.],
+                [0., y_std**2])
+
+kf.R = np.array([x_mu, 0.],
+                [0., y_mu])
 
 updRate = "10 10" # Active Idle
 
