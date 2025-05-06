@@ -84,10 +84,16 @@ if bto.find("Connected") != -1:
             print(f"Command: {bto}")
             if bto == "11":
                 # Store current position => old pos
+                if forward == False:
+                    oldX = x
+                    oldY = y
                 forward = True
                 backward = False
                 NANO.write(b"Forward\n")
             elif bto == "22":
+                if backward == False:
+                    oldX = x
+                    oldY = y
                 forward = False
                 backward = True
                 # Store current position => old pos
@@ -137,21 +143,37 @@ if bto.find("Connected") != -1:
                 desDir = 0
             elif bto == "0":
                 NANO.write(b"Stop\n")
+            elif bto == "10":
+                NANO.write(b"Stop\n")
 
         curDir = math.atan2(y - oldY, x - oldX) * (180/math.pi) + 180
         if curDir < 0:
             curDir = curDir + 360
         if curDir >= 360:
             curDir = curDir - 360
+
+
+        normDir = (desDir - curDir) % 360
+        if normDir > 180:
+            x -= 360
+
+        if forward or backward:
+            if normDir < -10:
+                print("Adjusting to the right")
+                NANO.write(b"Right\n")
+                sleep(1/normDir)
+
+            if normDir > 10:
+                print("Adjusting to the left")
+                NANO.write(b"Left\n")
+                sleep(1/normDir)
         
-        # if curDir < desDir:
-        # if curDir > desDir:
 
-        # if forward:
-        #     NANO.write(b"Fowrad\n")
+        if forward:
+            NANO.write(b"Fowrad\n")
 
-        # if backward:
-        #     NANO.write(b"Backward\n")
+        if backward:
+            NANO.write(b"Backward\n")
 
         sleep(0.1)
         

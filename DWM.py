@@ -1,16 +1,19 @@
 import serial
 from time import sleep
-from filterpy.kalman import KalmanFilter
+from filterpy.kalman import UnscentedKalmanFilter
 import numpy as np
 import re
 from collections import deque
+
+def h(x):
+    return x
 
 # x_mu = -0.02163601775523146
 # x_std = 0.07074315964054628
 # y_mu = 0.02645106742760512
 # y_std = 0.07415316805017082
 
-# kf = KalmanFilter(dim_x=2, dim_z=2, alpha=10)
+# kf = UnscentedKalmanFilter(dim_x=2, dim_z=2, alpha=1.05)
 
 # # Initial position
 # kf.x = np.array([[0.],
@@ -82,7 +85,7 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
     for i in range(10):
         s.readline()
 
-    for i in range(10):
+    for i in range(50):
         print(i)
         position.append((0, 0))
     
@@ -104,19 +107,23 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
             position.popleft()
             position.append((x, y))
 
-            x = 0
-            y = 0
+            xmean = 0
+            ymean = 0
             
             for p_i in position:
-                x += p_i[0]
-                y += p_i[1]
+                xmean += p_i[0]
+                ymean += p_i[1]
 
-            x = x / 10
-            y = y / 10
+            xmean = xmean / 50
+            ymean = ymean / 50
 
             with open("position.txt", "w") as f:
                 print(f"{x},{y}")
                 f.write(f"{x},{y}\n")
+                f.close()
+
+            with open("position_mean.txt", "w") as f:
+                f.write(f"{xmean},{ymean}\n")
                 f.close()
 
 print("Shutting down serial communication")

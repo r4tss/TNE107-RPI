@@ -39,15 +39,27 @@ while read != "1000":
     # message = message + read
 
     # Send DWM data
-    with open("position.txt", "r") as f:
-        for line in f:
-            line = line.strip("\n")
-            x, y = line.split(",")
-            x = int(x)
-            y = int(y)
-            recv_sock.send(f"{x}, {y}, ".encode())
-            # message = message + f"{x}, {y}, "
-        f.close()
+    if read == "10":
+        sleep(1)
+            with open("position_mean.txt", "r") as f:
+                for line in f:
+                    line = line.strip("\n")
+                    x, y = line.split(",")
+                    x = int(x)
+                    y = int(y)
+                    recv_sock.send(f"{x}, {y}, ".encode())
+                    # message = message + f"{x}, {y}, "
+                f.close()
+    else:
+        with open("position.txt", "r") as f:
+            for line in f:
+                line = line.strip("\n")
+                x, y = line.split(",")
+                x = int(x)
+                y = int(y)
+                recv_sock.send(f"{x}, {y}, ".encode())
+                # message = message + f"{x}, {y}, "
+            f.close()
 
     # Send angle data
     with open("angle.txt", "r") as f:
