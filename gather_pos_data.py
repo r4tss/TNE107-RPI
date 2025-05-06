@@ -1,0 +1,63 @@
+import serial
+from time import sleep
+
+# Gathering data like this we should see that measurements have a normal distribution with
+# quality factor weighing results further from the ground truth
+
+updRate = "1 1" # Active Idle
+with open("position.txt", "w") as f:
+    with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
+
+        # print(f"Opened serial port {s.name}")
+
+        sleep(1)
+        s.write(b"\r")
+        sleep(0.1)
+        s.write(b"\r")
+
+        s.write(b'nis ')
+        sleep(0.1)
+        s.write(b'0x1234')
+        sleep(0.1)
+        s.write(b'\r')
+        # print(f"Set PAN ID to 0x1234")
+
+        sleep(1)
+
+        s.write(b'nmt')
+        sleep(0.1)
+        s.write(b'\r')
+        # print("Configured node as tag")
+
+        sleep(1)
+
+        s.write(b"\r")
+        sleep(0.1)
+        s.write(b"\r")
+
+        sleep(2)
+
+        s.write(b"aurs ")
+        sleep(0.1)
+        s.write(updRate.encode())
+        sleep(0.1)
+        s.write(b'\r')
+        # print("Set update rate to " + updRate)
+
+        sleep(0.1)
+        s.write(b"lep")
+        sleep(0.1)
+        s.write(b"\r")
+        sleep(0.1)
+    
+        while True:
+            str = s.readline().decode('utf-8').strip('\n')
+
+            if "POS," in str:
+                str = str.replace("POS,", "")
+                print(str)
+
+                f.write(str + '\n')
+                f.close()
+
+print("Shutting down serial communication")
