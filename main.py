@@ -57,12 +57,8 @@ if bto.find("Connected") != -1:
     # LIDAR Process Code
     LIDARProcess = subprocess.Popen(["/home/pi/TNE107-RPI/LIDARProg", "--channel", "--serial", "/dev/ttyUSB0", "460800"], stdout=open(os.devnull, 'wb'))
     print(f"LIDAR PID: {LIDARProcess.pid}")
-
-
-    sleep(5)
     
     while bto != "1000":
-        #print(GPIO.input(PT))
         btReady, _, _ = select.select([BluetoothProcess.stdout], [], [], 0.0005)
 
         if btReady:
@@ -90,14 +86,10 @@ if bto.find("Connected") != -1:
                 # Store current position => old pos
                 forward = True
                 backward = False
-                oldX = x
-                oldY = y
                 NANO.write(b"Forward\n")
             elif bto == "22":
                 forward = False
                 backward = True
-                oldX = x
-                oldY = y
                 # Store current position => old pos
                 NANO.write(b"Backward\n")
             elif bto == "33":
@@ -144,27 +136,22 @@ if bto.find("Connected") != -1:
                 print("reset")
                 desDir = 0
             elif bto == "0":
-                # Store current position => cur pos
-                # curX = float(x) * 1000
-                # curY = float(y) * 1000
-
-                # oldDir = curDir
-
-                # curDir = (math.atan2(curY - oldY, curX - oldX) + math.pi) * (180/math.pi)
-                # if backward == True:
-                #     a = a - 180
-
                 NANO.write(b"Stop\n")
 
-        curDir = math.atan2(y - oldY, x - oldX)
-        # if curDir < desDir: 
+        curDir = math.atan2(y - oldY, x - oldX) * (180/math.pi) + 180
+        if curDir < 0:
+            curDir = curDir + 360
+        if curDir >= 360:
+            curDir = curDir - 360
+        
+        # if curDir < desDir:
         # if curDir > desDir:
 
-        if forward:
-            NANO.write(b"Fowrad\n")
+        # if forward:
+        #     NANO.write(b"Fowrad\n")
 
-        if backward:
-            NANO.write(b"Backward\n")
+        # if backward:
+        #     NANO.write(b"Backward\n")
 
         sleep(0.1)
         

@@ -53,7 +53,6 @@ while read != "1000":
     with open("angle.txt", "r") as f:
         for line in f:
             angle = line.strip("\n")
-            print(angle)
             recv_sock.send(f"{angle}, ".encode())
 
     recv_sock.send("0, ".encode()) # Near goal

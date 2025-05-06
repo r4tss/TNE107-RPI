@@ -3,13 +3,14 @@ from time import sleep
 from filterpy.kalman import KalmanFilter
 import numpy as np
 import re
+from collections import deque
 
 x_mu = -0.02163601775523146
 x_std = 0.07074315964054628
 y_mu = 0.02645106742760512
 y_std = 0.07415316805017082
 
-kf = KalmanFilter(dim_x=2, dim_z=2)
+kf = KalmanFilter(dim_x=2, dim_z=2, alpha=10)
 
 # Initial position
 kf.x = np.array([[0.],
@@ -30,9 +31,9 @@ kf.P = np.array([[x_std**2, 0.],
 kf.R = np.array([[x_mu, 0.],
                  [0., y_mu]])
 
-position = np.array([0, 0])
+position = deque([(0, 0)])
 
-updRate = "10 10" # Active Idle
+updRate = "1 1" # Active Idle
 
 with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
 
@@ -80,6 +81,9 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
 
     for i in range(10):
         s.readline()
+
+    for i in range(10):
+        position.append((0, 0))
     
     while True:
         dstr = s.readline().decode('utf-8').strip('\n')
@@ -95,6 +99,19 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
 
             x = int(kf.x[0] * 1000)
             y = int(kf.x[1] * 1000)
+
+            position.popleft()
+            position.appen((x, y))
+
+            x = 0
+            y = 0
+            
+            for p_i in position:
+                x += p_i[0]
+                y += p_i[1]
+
+            x = x / 10
+            y = y / 10
 
             with open("position.txt", "w") as f:
                 print(f"{x},{y}")
