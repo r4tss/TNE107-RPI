@@ -31,7 +31,7 @@ while read != "1000":
     else:
         sleep(1)
 
-    print("0\r")
+    # print("0\r")
 
     # print(f"Sending: 'Acknowledge: {read}'")
     # Acknowledge ÖS command
@@ -42,10 +42,9 @@ while read != "1000":
     with open("position.txt", "r") as f:
         for line in f:
             line = line.strip("\n")
-            x, y, z, qf = line.split(",")
-            x = int(float(x) * 1000)
-            y = int(float(y) * 1000)
-            print(f"x: {x}, y: {y}")
+            x, y = line.split(",")
+            x = int(x)
+            y = int(y)
             recv_sock.send(f"{x}, {y}, ".encode())
             # message = message + f"{x}, {y}, "
         f.close()

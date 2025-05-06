@@ -30,8 +30,9 @@ kf.P = np.array([[x_std**2, 0.],
 kf.R = np.array([[x_mu, 0.],
                  [0., y_mu]])
 
-updRate = "1 1" # Active Idle
+position = np.array([0, 0])
 
+updRate = "10 10" # Active Idle
 
 with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
 
@@ -91,9 +92,10 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
 
             x = int(kf.x[0] * 1000)
             y = int(kf.x[1] * 1000)
-            print(f"x: {x}, y: {y}")
+
             with open("position.txt", "w") as f:
-                f.write(f"x,y\n")
+                print(f"{x},{y}")
+                f.write(f"{x},{y}\n")
                 f.close()
 
 print("Shutting down serial communication")

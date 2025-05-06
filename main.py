@@ -15,6 +15,10 @@ GPIO.setup(PT, GPIO.IN)
 GPIO.setup(LED, GPIO.OUT)
 GPIO.output(LED, False)
 
+# DWM Process Code
+DWMProcess = subprocess.Popen(["/home/pi/venv/bin/python", "-u", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, text=True)
+print(f"DWM PID: {DWMProcess.pid}")
+
 # Open serial port to Arduino Nano
 NANO = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
 sleep(2)
@@ -38,6 +42,7 @@ y = ""
 
 oldX = 0
 oldY = 0
+forward = False
 backward = False
 
 curDir = 0
@@ -53,9 +58,6 @@ if bto.find("Connected") != -1:
     LIDARProcess = subprocess.Popen(["/home/pi/TNE107-RPI/LIDARProg", "--channel", "--serial", "/dev/ttyUSB0", "460800"], stdout=open(os.devnull, 'wb'))
     print(f"LIDAR PID: {LIDARProcess.pid}")
 
-    # DWM Process Code
-    DWMProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, text=True)
-    print(f"DWM PID: {DWMProcess.pid}")
 
     sleep(5)
     
@@ -73,23 +75,27 @@ if bto.find("Connected") != -1:
 
         if dwmReady:
             dwm = DWMProcess.stdout.readline().strip("\n")
-            x, y, z, qf = dwm.split(",")
+            x, y = dwm.split(",")
+            x = int(x)
+            y = int(y)
             #print("Quality factor: " + qf)
             # if float(qf) > 80:
-            print(x + ", " + y)
+            print(f"x: {x}, y: {y}")
 
         if newCommand:
             print(f"Command: {bto}")
             if bto == "11":
                 # Store current position => old pos
-                oldX = float(x) * 1000
-                oldY = float(y) * 1000
+                forward = True
                 backward = False
+                oldX = x
+                oldY = y
                 NANO.write(b"Forward\n")
             elif bto == "22":
-                oldX = float(x) * 1000
-                oldY = float(y) * 1000
+                forward = False
                 backward = True
+                oldX = x
+                oldY = y
                 # Store current position => old pos
                 NANO.write(b"Backward\n")
             elif bto == "33":
@@ -146,10 +152,23 @@ if bto.find("Connected") != -1:
                 # if backward == True:
                 #     a = a - 180
                 print(f"Current direction: {curDir}")
+                print(f"Desired direction: {desDir}")
                 NANO.write(b"Stop\n")
 
+        curDir = math.atan2(y - oldY, x - oldX)
+        # if curDir < desDir: 
+        # if curDir > desDir:
+
+        if forward:
+            NANO.write(b"Fowrad\n")
+
+        if backward:
+            NANO.write(b"Backward\n")
+
+        sleep(0.1)
+        
         with open("angle.txt", "w") as f:
-            f.write(f"{curDir}" + '\n')
+            f.write(f"{desDir}" + '\n')
             f.close()
 
         
