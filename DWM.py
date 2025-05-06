@@ -5,31 +5,31 @@ import numpy as np
 import re
 from collections import deque
 
-x_mu = -0.02163601775523146
-x_std = 0.07074315964054628
-y_mu = 0.02645106742760512
-y_std = 0.07415316805017082
+# x_mu = -0.02163601775523146
+# x_std = 0.07074315964054628
+# y_mu = 0.02645106742760512
+# y_std = 0.07415316805017082
 
-kf = KalmanFilter(dim_x=2, dim_z=2, alpha=10)
+# kf = KalmanFilter(dim_x=2, dim_z=2, alpha=10)
 
-# Initial position
-kf.x = np.array([[0.],
-                 [0.]])
+# # Initial position
+# kf.x = np.array([[0.],
+#                  [0.]])
 
-# State transition matrix
-kf.F = np.array([[1., 0.],
-                 [0., 1.]])
+# # State transition matrix
+# kf.F = np.array([[1., 0.],
+#                  [0., 1.]])
 
-# Measurement function
-kf.H = np.array([[1., 0.],
-                 [0., 1.]])
+# # Measurement function
+# kf.H = np.array([[1., 0.],
+#                  [0., 1.]])
 
-# Covariance matrix
-kf.P = np.array([[x_std**2, 0.],
-                 [0., y_std**2]])
+# # Covariance matrix
+# kf.P = np.array([[x_std**2, 0.],
+#                  [0., y_std**2]])
 
-kf.R = np.array([[x_mu, 0.],
-                 [0., y_mu]])
+# kf.R = np.array([[x_std**2, 0.],
+#                  [0., y_std**2]])
 
 position = deque([(0, 0)])
 
@@ -83,6 +83,7 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
         s.readline()
 
     for i in range(10):
+        print(i)
         position.append((0, 0))
     
     while True:
@@ -91,17 +92,17 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
         if "POS," in dstr:
             dstr = re.sub('[^0-9,.]', '', dstr)
             _, x, y, z, qf = dstr.split(",")
-            x = float(x)
-            y = float(y)
-            kf.predict()
-            kf.update(np.array([[x],
-                                [y]]))
+            x = int(float(x) * 1000)
+            y = int(float(y) * 1000)
+            # kf.predict()
+            # kf.update(np.array([[x],
+            #                     [y]]))
 
-            x = int(kf.x[0] * 1000)
-            y = int(kf.x[1] * 1000)
+            # x = int(kf.x[0] * 1000)
+            # y = int(kf.x[1] * 1000)
 
             position.popleft()
-            position.appen((x, y))
+            position.append((x, y))
 
             x = 0
             y = 0
