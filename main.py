@@ -31,22 +31,11 @@ bto = BluetoothProcess.stdout.readline().strip()
 print(bto)
 
 newCommand = False
-rightTurnIndexN = 100
-rightTurnIndexF = 50
-rightTurnIndexR = 0
-rightTurn = 0
-leftTurnIndexN = 100
-leftTurnIndexF = 50
-leftTurn = 0
-
-angle = 0.0
 
 dwm = ""
 x = ""
 y = ""
 
-curX = 0
-curY = 0
 oldX = 0
 oldY = 0
 backward = False
@@ -88,19 +77,6 @@ if bto.find("Connected") != -1:
             #print("Quality factor: " + qf)
             # if float(qf) > 80:
             print(x + ", " + y)
-
-        # Send commands to Arduino based on bto
-        if rightTurn > 0:
-            NANO.write(b"Right\n")
-            rightTurn = rightTurn - 1
-            if rightTurn == 0:
-                NANO.write(b"00")
-
-        if leftTurn > 0:
-            NANO.write(b"Left\n")
-            leftTurn = leftTurn - 1
-            if leftTurn == 0:
-                NANO.write(b"00")
 
         if newCommand:
             print(f"Command: {bto}")
@@ -159,7 +135,7 @@ if bto.find("Connected") != -1:
             elif bto == "420":
                 print("reset")
                 desDir = 0
-            else:
+            elif bto == "0":
                 # Store current position => cur pos
                 # curX = float(x) * 1000
                 # curY = float(y) * 1000
