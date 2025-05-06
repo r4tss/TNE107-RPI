@@ -81,6 +81,8 @@ if bto.find("Connected") != -1:
             #print("Quality factor: " + qf)
             # if float(qf) > 80:
             print(f"x: {x}, y: {y}")
+            print(f"Current direction: {curDir}")
+            print(f"Desired direction: {desDir}")
 
         if newCommand:
             print(f"Command: {bto}")
@@ -151,8 +153,7 @@ if bto.find("Connected") != -1:
                 # curDir = (math.atan2(curY - oldY, curX - oldX) + math.pi) * (180/math.pi)
                 # if backward == True:
                 #     a = a - 180
-                print(f"Current direction: {curDir}")
-                print(f"Desired direction: {desDir}")
+
                 NANO.write(b"Stop\n")
 
         curDir = math.atan2(y - oldY, x - oldX)

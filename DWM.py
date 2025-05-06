@@ -77,6 +77,9 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
     sleep(0.1)
     s.write(b"\r")
     sleep(0.1)
+
+    for i in range(10):
+        s.readline()
     
     while True:
         dstr = s.readline().decode('utf-8').strip('\n')
