@@ -50,7 +50,6 @@ desDir = 0
 normDir = 0
 
 if bto.find("Connected") != -1:
-    GPIO.output(LED, True)
     nanoBtMessage = "Bluetooth connected " + bto[13:].translate({ord(c): None for c in ':'}) # Address to send to nano
     NANO.write(nanoBtMessage.encode())
     print(nanoBtMessage)
@@ -106,6 +105,10 @@ if bto.find("Connected") != -1:
                     desDir = desDir + 360
 
                 curDir = desDir
+
+                with open("angle.txt", "w") as f:
+                    f.write(f"{desDir}" + '\n')
+                    f.close()
                     
                 NANO.write(b"Right\n")
                 sleep(0.95)
@@ -116,6 +119,10 @@ if bto.find("Connected") != -1:
                     desDir = desDir - 360
 
                 curDir = desDir
+
+                with open("angle.txt", "w") as f:
+                    f.write(f"{desDir}" + '\n')
+                    f.close()
                     
                 NANO.write(b"Left\n")
                 sleep(0.9)
@@ -126,7 +133,11 @@ if bto.find("Connected") != -1:
                     desDir = desDir + 360
 
                 curDir = desDir
-                    
+
+                with open("angle.txt", "w") as f:
+                    f.write(f"{desDir}" + '\n')
+                    f.close()
+                
                 NANO.write(b"Right\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
@@ -136,7 +147,11 @@ if bto.find("Connected") != -1:
                     desDir = desDir - 360
                 
                 curDir = desDir
-                
+
+                with open("angle.txt", "w") as f:
+                    f.write(f"{desDir}" + '\n')
+                    f.close()
+
                 NANO.write(b"Left\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
@@ -151,8 +166,14 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
                 forward = False
                 backward = False
+            elif bto == "98":
+                GPIO.output(LED, True)
+                sleep(1)
+                GPIO.output(LED, False)
+                
+            
 
-        curDir = 340# math.atan2(y - oldY, x - oldX) * (180/math.pi)
+        curDir = math.atan2(y - oldY, x - oldX) * (180/math.pi)
         if curDir < 0:
             curDir = curDir + 360
         if curDir >= 360:
@@ -163,23 +184,23 @@ if bto.find("Connected") != -1:
         if normDir > 180:
             normDir -= 360
 
-        if forward or backward:
-            if normDir > 10:
-                print("Adjusting to the left")
-                NANO.write(b"Left\n")
-                sleep(normDir / 1000)
-
-            if normDir < -10:
-                print("Adjusting to the right")
-                NANO.write(b"Right\n")
-                sleep(normDir / 1000)
-        
-
         if forward:
             NANO.write(b"Forward\n")
+            
+            # if normDir > 10:
+            #     print("Adjusting to the left")
+            #     NANO.write(b"Left\n")
+            #     sleep(normDir / 1000)
+
+            # if normDir < -10:
+            #     print("Adjusting to the right")
+            #     NANO.write(b"Right\n")
+            #     sleep(normDir / 1000)
+
 
         if backward:
             NANO.write(b"Backward\n")
+        
         sleep(0.1)
         print(f"current pos ({x}, {y}) -> old pos ({oldX}, {oldY})")
         print(f"Current direction: {curDir}")
@@ -189,8 +210,6 @@ if bto.find("Connected") != -1:
         with open("angle.txt", "w") as f:
             f.write(f"{desDir}" + '\n')
             f.close()
-
-        
 
         # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETETION?????)
 
