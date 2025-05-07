@@ -200,18 +200,19 @@ if bto.find("Connected") != -1:
                 sleep(1)
                 GPIO.output(LED, False)
 
-        iteration += 1
+        with open("distances.txt", "r") as f:
+            for line in f:
+                a, d = line.split()
+                a = int(a)
+                d = int(d)
 
-        if iteration == 10:
-                with open("distances.txt", "r") as f:
-                    for line in f:
-                        a, d = line.split()
-                        a = int(a)
-                        d = int(d)
+                if (a < 20 or a > 340) and d < 300:
+                    forward = False
+                    if backward == False:
+                        NANO.write(b"Stop\n")
 
-                        if (a < 20 or a > 340) and d < 20:
-                            print("Something in front")
-                            forward = False
+                if (a > 160 and a < 200):
+                    print(f"{a}, {d}")
     
         if forward:
             NANO.write(b"Forward\n")
