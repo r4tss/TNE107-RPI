@@ -16,7 +16,7 @@ GPIO.setup(LED, GPIO.OUT)
 GPIO.output(LED, False)
 
 # DWM Process Code
-DWMProcess = subprocess.Popen(["/home/pi/venv/bin/python", "-u", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, stderr=open(os.devnull, 'wb'), text=True)
+DWMProcess = subprocess.Popen(["/home/pi/filterpy/bin/python", "-u", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, stderr=open(os.devnull, 'wb'), text=True)
 print(f"DWM PID: {DWMProcess.pid}")
 
 # Open serial port to Arduino Nano
