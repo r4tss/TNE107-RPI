@@ -82,12 +82,8 @@ while read != "1000":
         f.close()
 
     for i in range(359):
-        # print(f"({i}, {distances[i]})")
         recv_sock.send(f"{distances[i]}, ".encode())
-        # message = message + f"{distances[i]}, "
     recv_sock.send(f"{distances[359]}\n".encode())
-    # message = message + f"{distances[360]}\n"
-    # recv_sock.send(message.encode())
 
 print("Shutting down...")
 server_sock.close()

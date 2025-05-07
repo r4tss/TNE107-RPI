@@ -115,7 +115,7 @@ int main(int argc, const char * argv[]) {
     std::ifstream buf_file_i;
     int distances[360];
 
-    int a, b;
+    // int a, b;
 
     printf("Ultra simple LIDAR data grabber for SLAMTEC LIDAR.\n"
            "Version: %s\n", SL_LIDAR_SDK_VERSION);
@@ -296,18 +296,22 @@ int main(int argc, const char * argv[]) {
             }
 
 	    buf_file_o.close();
-	    buf_file_i.open("distances_buf.txt");
-	    outfile.open("distances.txt");
 
-	    a = 0;
-	    b = 0;
-	    while (buf_file_i >> a >> b) {
-	      outfile << a << " " << b << "\n";
-	      printf("Angle: %i, Dist: %i\n", a, b);
-	    }
+	    // Instead of moving all values to file, rename buffer file
+	    // buf_file_i.open("distances_buf.txt");
+	    // outfile.open("distances.txt");
 
-	    buf_file_i.close();
-	    outfile.close();
+	    // a = 0;
+	    // b = 0;
+	    // while (buf_file_i >> a >> b) {
+	    //   outfile << a << " " << b << "\n";
+	    //   printf("Angle: %i, Dist: %i\n", a, b);
+	    //}
+	    std::rename("distances_buf.txt", "distances.txt");
+
+
+	    // buf_file_i.close();
+	    // outfile.close();
         }
 
         if (ctrl_c_pressed){
