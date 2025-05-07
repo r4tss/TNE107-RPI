@@ -1,4 +1,5 @@
 import serial
+import os
 from time import sleep
 from filterpy.kalman import UnscentedKalmanFilter
 from filterpy.kalman import MerweScaledSigmaPoints
@@ -113,14 +114,14 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
             xmean = int(xmean / 50)
             ymean = int(ymean / 50)
 
-            with open("position.txt", "w") as f:
+            with open("position_buf.txt", "w") as f:
                 print(f"{kfx},{kfy}")
-                f.write(f"{x},{y}\n")
-                f.close()
+                f.write(f"{kfx},{kfy}\n")
+            os.rename("position_buf.txt", "position.txt")
 
-            with open("position_mean.txt", "w") as f:
+            with open("position_mean_buf.txt", "w") as f:
                 #print(f"xmean: {xmean}, ymean: {ymean}")
                 f.write(f"{xmean},{ymean}\n")
-                f.close()
+            os.rename("position_mean_buf.txt", "position_mean.txt")
 
 print("Shutting down serial communication")
