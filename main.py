@@ -37,8 +37,8 @@ print(bto)
 newCommand = False
 
 dwm = ""
-x = ""
-y = ""
+x = 0
+y = 0
 
 oldX = 0
 oldY = 0
@@ -47,6 +47,7 @@ backward = False
 
 curDir = 0
 desDir = 0
+normDir = 0
 
 if bto.find("Connected") != -1:
     GPIO.output(LED, True)
@@ -57,6 +58,8 @@ if bto.find("Connected") != -1:
     # LIDAR Process Code
     LIDARProcess = subprocess.Popen(["/home/pi/TNE107-RPI/LIDARProg", "--channel", "--serial", "/dev/ttyUSB0", "460800"], stdout=open(os.devnull, 'wb'))
     print(f"LIDAR PID: {LIDARProcess.pid}")
+
+    sleep(2)
     
     while bto != "1000":
         btReady, _, _ = select.select([BluetoothProcess.stdout], [], [], 0.0005)
@@ -76,28 +79,27 @@ if bto.find("Connected") != -1:
             y = int(y)
             #print("Quality factor: " + qf)
             # if float(qf) > 80:
-            print(f"x: {x}, y: {y}")
-            print(f"Current direction: {curDir}")
-            print(f"Desired direction: {desDir}")
 
         if newCommand:
             print(f"Command: {bto}")
             if bto == "11":
                 # Store current position => old pos
+                NANO.write(b"Forward\n")
                 if forward == False:
                     oldX = x
                     oldY = y
+                    sleep(2)
                 forward = True
                 backward = False
-                NANO.write(b"Forward\n")
             elif bto == "22":
+                # Store current position => old pos
+                NANO.write(b"Backward\n")
                 if backward == False:
                     oldX = x
                     oldY = y
+                    sleep(2)
                 forward = False
                 backward = True
-                # Store current position => old pos
-                NANO.write(b"Backward\n")
             elif bto == "33":
                 desDir = desDir - 90
                 if desDir < 0:
@@ -143,10 +145,14 @@ if bto.find("Connected") != -1:
                 desDir = 0
             elif bto == "0":
                 NANO.write(b"Stop\n")
+                forward = False
+                backward = False
             elif bto == "10":
                 NANO.write(b"Stop\n")
+                forward = False
+                backward = False
 
-        curDir = math.atan2(y - oldY, x - oldX) * (180/math.pi) + 180
+        curDir = 340# math.atan2(y - oldY, x - oldX) * (180/math.pi)
         if curDir < 0:
             curDir = curDir + 360
         if curDir >= 360:
@@ -155,27 +161,30 @@ if bto.find("Connected") != -1:
 
         normDir = (desDir - curDir) % 360
         if normDir > 180:
-            x -= 360
+            normDir -= 360
 
         if forward or backward:
-            if normDir < -10:
-                print("Adjusting to the right")
-                NANO.write(b"Right\n")
-                sleep(1/normDir)
-
             if normDir > 10:
                 print("Adjusting to the left")
                 NANO.write(b"Left\n")
-                sleep(1/normDir)
+                sleep(normDir / 1000)
+
+            if normDir < -10:
+                print("Adjusting to the right")
+                NANO.write(b"Right\n")
+                sleep(normDir / 1000)
         
 
         if forward:
-            NANO.write(b"Fowrad\n")
+            NANO.write(b"Forward\n")
 
         if backward:
             NANO.write(b"Backward\n")
-
         sleep(0.1)
+        print(f"current pos ({x}, {y}) -> old pos ({oldX}, {oldY})")
+        print(f"Current direction: {curDir}")
+        print(f"Normalized direction: {normDir}")
+        print(f"Desired direction: {desDir}")
         
         with open("angle.txt", "w") as f:
             f.write(f"{desDir}" + '\n')

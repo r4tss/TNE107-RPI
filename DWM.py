@@ -1,38 +1,36 @@
 import serial
 from time import sleep
 from filterpy.kalman import UnscentedKalmanFilter
+from filterpy.kalman import MerweScaledSigmaPoints
 import numpy as np
 import re
 from collections import deque
 
-def h(x):
+def fx(x, t):
     return x
 
-# x_mu = -0.02163601775523146
-# x_std = 0.07074315964054628
-# y_mu = 0.02645106742760512
-# y_std = 0.07415316805017082
+def hx(x):
+    return x
 
-# kf = UnscentedKalmanFilter(dim_x=2, dim_z=2, alpha=1.05)
+x_mu = -0.02163601775523146
+x_std = 0.07074315964054628
+y_mu = 0.02645106742760512
+y_std = 0.07415316805017082
 
-# # Initial position
-# kf.x = np.array([[0.],
-#                  [0.]])
+points = MerweScaledSigmaPoints(n=2, alpha=1, beta=2, kappa=0)
 
-# # State transition matrix
-# kf.F = np.array([[1., 0.],
-#                  [0., 1.]])
+kf = UnscentedKalmanFilter(dim_x=2, dim_z=2, dt=0.1, fx=fx, hx=hx, points=points)
 
-# # Measurement function
-# kf.H = np.array([[1., 0.],
-#                  [0., 1.]])
+# Initial position
+kf.x = np.array([0., 0.])
 
-# # Covariance matrix
-# kf.P = np.array([[x_std**2, 0.],
-#                  [0., y_std**2]])
+# Initial error
+kf.P *= 1000
 
-# kf.R = np.array([[x_std**2, 0.],
-#                  [0., y_std**2]])
+# Noise matrix
+kf.R = np.diag([25, 25])
+
+kf.Q = np.eye(2)
 
 position = deque([(0, 0)])
 
@@ -82,11 +80,10 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
     s.write(b"\r")
     sleep(0.1)
 
-    for i in range(10):
+    for i in range(30):
         s.readline()
 
     for i in range(50):
-        print(i)
         position.append((0, 0))
     
     while True:
@@ -97,12 +94,11 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
             _, x, y, z, qf = dstr.split(",")
             x = int(float(x) * 1000)
             y = int(float(y) * 1000)
-            # kf.predict()
-            # kf.update(np.array([[x],
-            #                     [y]]))
+            kf.predict()
+            kf.update(np.array([x, y]))
 
-            # x = int(kf.x[0] * 1000)
-            # y = int(kf.x[1] * 1000)
+            kfx = int(kf.x[0] * 1000)
+            kfy = int(kf.x[1] * 1000)
 
             position.popleft()
             position.append((x, y))
@@ -114,15 +110,16 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
                 xmean += p_i[0]
                 ymean += p_i[1]
 
-            xmean = xmean / 50
-            ymean = ymean / 50
+            xmean = int(xmean / 50)
+            ymean = int(ymean / 50)
 
             with open("position.txt", "w") as f:
-                print(f"{x},{y}")
+                print(f"{kfx},{kfy}")
                 f.write(f"{x},{y}\n")
                 f.close()
 
             with open("position_mean.txt", "w") as f:
+                #print(f"xmean: {xmean}, ymean: {ymean}")
                 f.write(f"{xmean},{ymean}\n")
                 f.close()
 
