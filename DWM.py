@@ -98,8 +98,8 @@ with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
             kf.predict()
             kf.update(np.array([x, y]))
 
-            kfx = int(kf.x[0] * 1000)
-            kfy = int(kf.x[1] * 1000)
+            kfx = int(kf.x[0])
+            kfy = int(kf.x[1])
 
             position.popleft()
             position.append((x, y))

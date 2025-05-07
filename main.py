@@ -49,6 +49,8 @@ curDir = 0
 desDir = 0
 normDir = 0
 
+iteration = 0
+
 if bto.find("Connected") != -1:
     nanoBtMessage = "Bluetooth connected " + bto[13:].translate({ord(c): None for c in ':'}) # Address to send to nano
     NANO.write(nanoBtMessage.encode())
@@ -83,20 +85,18 @@ if bto.find("Connected") != -1:
             print(f"Command: {bto}")
             if bto == "11":
                 # Store current position => old pos
-                NANO.write(b"Forward\n")
+                # NANO.write(b"Forward\n")
                 if forward == False:
                     oldX = x
                     oldY = y
-                    sleep(2)
                 forward = True
                 backward = False
             elif bto == "22":
                 # Store current position => old pos
-                NANO.write(b"Backward\n")
+                # NANO.write(b"Backward\n")
                 if backward == False:
                     oldX = x
                     oldY = y
-                    sleep(2)
                 forward = False
                 backward = True
             elif bto == "33":
@@ -110,6 +110,8 @@ if bto.find("Connected") != -1:
                     f.write(f"{desDir}" + '\n')
                     f.close()
                     
+                NANO.write(b"Stop\n")
+                sleep(0.1)    
                 NANO.write(b"Right\n")
                 sleep(0.95)
                 NANO.write(b"Stop\n")
@@ -123,7 +125,9 @@ if bto.find("Connected") != -1:
                 with open("angle.txt", "w") as f:
                     f.write(f"{desDir}" + '\n')
                     f.close()
-                    
+
+                NANO.write(b"Stop\n")
+                sleep(0.1)
                 NANO.write(b"Left\n")
                 sleep(0.9)
                 NANO.write(b"Stop\n")
@@ -137,7 +141,9 @@ if bto.find("Connected") != -1:
                 with open("angle.txt", "w") as f:
                     f.write(f"{desDir}" + '\n')
                     f.close()
-                
+
+                NANO.write(b"Stop\n")
+                sleep(0.1)
                 NANO.write(b"Right\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
@@ -151,7 +157,9 @@ if bto.find("Connected") != -1:
                 with open("angle.txt", "w") as f:
                     f.write(f"{desDir}" + '\n')
                     f.close()
-
+                    
+                NANO.write(b"Stop\n")
+                sleep(0.1)
                 NANO.write(b"Left\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
@@ -166,37 +174,47 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
                 forward = False
                 backward = False
+                sleep(2)
+                curDir = math.atan2(y - oldY, x - oldX) * (180/math.pi)
+                if curDir < 0:
+                    curDir = curDir + 360
+                if curDir >= 360:
+                    curDir = curDir - 360
+
+                normDir = (desDir - curDir) % 360
+                if normDir > 180:
+                    normDir -= 360
+
+                if normDir > 10:
+                    print("Adjusting to the left")
+                    NANO.write(b"Left\n")
+                    sleep(abs(normDir) / 10000)
+
+                if normDir < -10:
+                    print("Adjusting to the right")
+                    NANO.write(b"Right\n")
+                    sleep(abs(normDir) / 10000)
+
             elif bto == "98":
                 GPIO.output(LED, True)
                 sleep(1)
                 GPIO.output(LED, False)
-                
-            
 
-        curDir = math.atan2(y - oldY, x - oldX) * (180/math.pi)
-        if curDir < 0:
-            curDir = curDir + 360
-        if curDir >= 360:
-            curDir = curDir - 360
+        iteration += 1
 
+        if iteration == 10:
+                with open("distances.txt", "r") as f:
+                    for line in f:
+                        a, d = line.split()
+                        a = int(a)
+                        d = int(d)
 
-        normDir = (desDir - curDir) % 360
-        if normDir > 180:
-            normDir -= 360
-
+                        if (a < 20 or a > 340) and d < 20:
+                            print("Something in front")
+                            forward = False
+    
         if forward:
             NANO.write(b"Forward\n")
-            
-            # if normDir > 10:
-            #     print("Adjusting to the left")
-            #     NANO.write(b"Left\n")
-            #     sleep(normDir / 1000)
-
-            # if normDir < -10:
-            #     print("Adjusting to the right")
-            #     NANO.write(b"Right\n")
-            #     sleep(normDir / 1000)
-
 
         if backward:
             NANO.write(b"Backward\n")
@@ -212,8 +230,6 @@ if bto.find("Connected") != -1:
             f.close()
 
         # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETETION?????)
-
-    
     print("Terminating Serial port to Arduino Nano")
     NANO.write(b"Closing down\n")
     sleep(1)
