@@ -1,8 +1,8 @@
 #include <LiquidCrystal_I2C.h>
 
 // To H-bridges
-const int D1 = 10;
-const int D2 = 11;
+const int D1 = 9;
+const int D2 = 3;
 const int D3 = 6;
 const int D4 = 5;
 
@@ -16,8 +16,6 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 int emptySpace = 0;
 
 void setup() {
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH);
 
   pinMode(D1, OUTPUT);
   pinMode(D2, OUTPUT);
@@ -84,15 +82,14 @@ void loop() {
 
   if (received.indexOf("Closing down") >= 0) {
     lcd.clear();
-    lcd.setCursor(2, 0);
-    lcd.print("AGV booting!");
+    lcd.setCursor(1, 0);
+    lcd.print("Shutting down!");
     received = "Dot dot dot dot";
 
-    Serial.end();
-
-    delay(5000);
-
-    Serial.begin(9600);
+    digitalWrite(D1, LOW);
+    digitalWrite(D2, LOW);
+    digitalWrite(D3, LOW);
+    digitalWrite(D4, LOW);
   }
 
   if (received.indexOf("Forward") >= 0) { // Forward

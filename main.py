@@ -16,14 +16,14 @@ GPIO.setup(LED, GPIO.OUT)
 GPIO.output(LED, False)
 
 # DWM Process Code
-DWMProcess = subprocess.Popen(["/home/pi/venv/bin/python", "-u", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, text=True)
+DWMProcess = subprocess.Popen(["/home/pi/venv/bin/python", "-u", "/home/pi/TNE107-RPI/DWM.py"], stdout=subprocess.PIPE, stderr=open(os.devnull, 'wb'), text=True)
 print(f"DWM PID: {DWMProcess.pid}")
 
 # Open serial port to Arduino Nano
 NANO = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
 sleep(2)
 
-BluetoothProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/bt.py"], stdout=subprocess.PIPE, text=True)
+BluetoothProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/bt.py"], stdout=subprocess.PIPE, stderr=open(os.devnull, 'wb'), text=True)
 
 # Waiting on connection
 NANO.write(b"Bluetooth up\n")
@@ -227,5 +227,3 @@ if bto.find("Connected") != -1:
 
 print("Terminating Bluetooth Process")
 os.kill(BluetoothProcess.pid, signal.SIGINT)
-
-# def calc_turn(desiredDirection, currentDirection):
