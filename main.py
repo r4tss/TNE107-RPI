@@ -211,8 +211,7 @@ if bto.find("Connected") != -1:
                     if backward == False:
                         NANO.write(b"Stop\n")
 
-                if ((a > 155 and a < 170) or (a > 190 and a < 205)) and (d > 0 and d < 300):
-                    print("Something behind!")
+                if ((a > 155 and a < 165) or (a > 195 and a < 205)) and (d > 0 and d < 300):
                     backward = False
                     if forward == False:
                         NANO.write(b"Stop\n")
