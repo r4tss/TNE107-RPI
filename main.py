@@ -164,8 +164,13 @@ if bto.find("Connected") != -1:
                 sleep(0.45)
                 NANO.write(b"Stop\n")
             elif bto == "420":
-                print("reset")
-                desDir = 0
+                NANO.write(b"Goal\n")
+                print(NANO.readline())
+                GPIO.output(LED, True)
+                goal_read = False
+                while goal_read == False:
+                    goal_read = GPIO.input(PT)
+                GPIO.output(LED, False)
             elif bto == "0":
                 NANO.write(b"Stop\n")
                 forward = False

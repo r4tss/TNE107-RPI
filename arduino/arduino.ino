@@ -1,4 +1,6 @@
+#include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <VL53L0X.h>
 
 // To H-bridges
 const int D1 = 9;
@@ -12,15 +14,25 @@ String received = "";
 
 // LCD
 LiquidCrystal_I2C lcd(0x27, 20, 4);
-
 int emptySpace = 0;
 
-void setup() {
+// TOF
+VL53L0X sensor;
+int dist = 0;
 
+// IR
+const int LIR = 10;
+const int RIR = 11;
+
+void setup() {
   pinMode(D1, OUTPUT);
   pinMode(D2, OUTPUT);
   pinMode(D3, OUTPUT);
   pinMode(D4, OUTPUT);
+
+  pinMode(LIR, INPUT);
+  pinMode(RIR, INPUT);
+
   digitalWrite(D1, LOW);
   digitalWrite(D2, LOW);
   digitalWrite(D3, LOW);
@@ -28,14 +40,26 @@ void setup() {
 
   Serial.begin(115200);
 
+  Wire.begin();
   lcd.init();
   lcd.backlight();
   lcd.setCursor(2, 0);
   lcd.print("AGV booting!");
   received = "Dot dot dot dot";
+
+  
+  sensor.setTimeout(500);
+  if (!sensor.init())
+  {
+    Serial.println("Failed to detect and initialize sensor!");
+    while (1) {}
+  }
+  sensor.setMeasurementTimingBudget(10000);
 }
 
 void loop() {
+  dist = sensor.readRangeSingleMillimeters();
+
   if (Serial.available() > 0) {
     received = Serial.readStringUntil('\n');
     //Serial.println(received);
@@ -116,10 +140,40 @@ void loop() {
     digitalWrite(D3, HIGH);
     digitalWrite(D4, LOW);
   }
+  else if (received.indexOf("Goal") >= 0) { // Pair with goal
+    if (((digitalRead(LIR)) && digitalRead(RIR)) || (dist < 100)) {
+      Serial.println("Stopped");
+      digitalWrite(D1, LOW);
+      digitalWrite(D2, LOW);
+      digitalWrite(D3, LOW);
+      digitalWrite(D4, LOW);
+    }
+    else if (digitalRead(RIR)) {
+      analogWrite(D1, 100);
+      digitalWrite(D2, LOW);
+      digitalWrite(D3, LOW);
+      analogWrite(D4, 100);
+    }
+    else if (digitalRead(LIR)) {
+      digitalWrite(D1, LOW);
+      analogWrite(D2, 100);
+      analogWrite(D3, 100);
+      digitalWrite(D4, LOW);
+    }
+    else {
+      analogWrite(D1, 50);
+      digitalWrite(D2, LOW);
+      analogWrite(D3, 50);
+      digitalWrite(D4, LOW);
+    }
+  } 
   else {
     digitalWrite(D1, LOW);
     digitalWrite(D2, LOW);
     digitalWrite(D3, LOW);
     digitalWrite(D4, LOW);
   }
+
+  
+  
 }
