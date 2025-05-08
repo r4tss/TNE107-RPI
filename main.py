@@ -279,7 +279,7 @@ def adjustAngle(adiff, f, b):
             print("Adjusting to the left")
             NANO.write(b"Left\n")
             sleep(abs(adiff) / 90)
-    else if b:
+    elif b:
         if adiff < -10:
             print("Adjusting to the right")
             NANO.write(b"Right\n")
