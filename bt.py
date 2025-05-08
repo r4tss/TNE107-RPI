@@ -26,12 +26,7 @@ while read != "1000":
     read = read.decode("utf-8").strip('\n')
     print(f"{read}\r")
 
-    if read == "11" or read == "22":
-        sleep(0.5)
-    else:
-        sleep(1)
-
-    # print("0\r")
+    sleep(1)
 
     # print(f"Sending: 'Acknowledge: {read}'")
     # Acknowledge ÖS command

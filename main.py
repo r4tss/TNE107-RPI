@@ -175,25 +175,21 @@ if bto.find("Connected") != -1:
                 forward = False
                 backward = False
                 sleep(2)
-                curDir = math.atan2(y - oldY, x - oldX) * (180/math.pi)
-                if curDir < 0:
-                    curDir = curDir + 360
-                if curDir >= 360:
-                    curDir = curDir - 360
 
-                normDir = (desDir - curDir) % 360
-                if normDir > 180:
-                    normDir -= 360
+                for i in range(30):
+                    dwm = DWMProcess.stdout.readline().strip("\n")
+                x, y = dwm.split(",")
+                x = int(x)
+                y = int(y)
 
-                if normDir > 10:
-                    print("Adjusting to the left")
-                    NANO.write(b"Left\n")
-                    sleep(abs(normDir) / 10000)
+                curDir = calcCurDir(x, y, oldX, oldY)
 
-                if normDir < -10:
-                    print("Adjusting to the right")
-                    NANO.write(b"Right\n")
-                    sleep(abs(normDir) / 10000)
+                adiff = calcAngleDiff(desDir, curDir)
+
+                adjustAngle(adiff, forward, backward)
+
+                forward = False
+                backward = False
 
             elif bto == "98":
                 GPIO.output(LED, True)
@@ -222,8 +218,7 @@ if bto.find("Connected") != -1:
         if backward:
             NANO.write(b"Backward\n")
         
-        sleep(0.1)
-        print(f"current pos ({x}, {y}) -> old pos ({oldX}, {oldY})")
+        print(f"current pos ({x}, {y}) <- old pos ({oldX}, {oldY})")
         print(f"Current direction: {curDir}")
         print(f"Normalized direction: {normDir}")
         print(f"Desired direction: {desDir}")
@@ -233,10 +228,6 @@ if bto.find("Connected") != -1:
             f.close()
 
         # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETETION?????)
-    print("Terminating Serial port to Arduino Nano")
-    NANO.write(b"Closing down\n")
-    sleep(1)
-    NANO.close()
 
     print("Terminating LIDAR process")
     os.kill(LIDARProcess.pid, signal.SIGINT)
@@ -246,3 +237,51 @@ if bto.find("Connected") != -1:
 
 print("Terminating Bluetooth Process")
 os.kill(BluetoothProcess.pid, signal.SIGINT)
+
+print("Terminating Serial port to Arduino Nano")
+NANO.write(b"Closing down\n")
+sleep(1)
+NANO.close()
+
+
+# Takes desired direction and current direction to get angle difference from desired direction
+# Returns this angle difference with positive differences being left turns and negative ones being right turns
+def calcAngleDiff(a1, a2):
+    diff = a1 - a2
+
+    if diff < -180:
+        diff += 360
+
+    return diff
+
+def calcCurDir(x, y, xo, yo):
+    curDir = math.atan2(y - yo, x - xo) * (180/math.pi)
+    if curDir < 0:
+        curDir = curDir + 360
+    if curDir >= 360:
+        curDir = curDir - 360
+
+    return curDir
+
+def adjustAngle(adiff, f, b):
+    if f:
+        if adiff > 10:
+            print("Adjusting to the right")
+            NANO.write(b"Right\n")
+            sleep(abs(adiff) / 90)
+
+        if normDir < -10:
+            print("Adjusting to the left")
+            NANO.write(b"Left\n")
+            sleep(abs(adiff) / 90)
+    else if b:
+        if adiff < -10:
+            print("Adjusting to the right")
+            NANO.write(b"Right\n")
+            sleep(abs(adiff) / 90)
+
+        if normDir > 10:
+            print("Adjusting to the left")
+            NANO.write(b"Left\n")
+            sleep(abs(adiff) / 90)
+
