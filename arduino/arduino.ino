@@ -12,6 +12,7 @@ const int D4 = 5;
 char c;
 String received = "";
 
+
 // LCD
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 int emptySpace = 0;
@@ -39,27 +40,20 @@ void setup() {
   digitalWrite(D4, LOW);
 
   Serial.begin(115200);
-
   Wire.begin();
+
+  sensor.init();
+  sensor.setMeasurementTimingBudget(10000);
+
   lcd.init();
   lcd.backlight();
   lcd.setCursor(2, 0);
   lcd.print("AGV booting!");
   received = "Dot dot dot dot";
-
-  
-  sensor.setTimeout(500);
-  if (!sensor.init())
-  {
-    Serial.println("Failed to detect and initialize sensor!");
-    while (1) {}
-  }
-  sensor.setMeasurementTimingBudget(10000);
 }
 
 void loop() {
-  dist = sensor.readRangeSingleMillimeters();
-
+  
   if (Serial.available() > 0) {
     received = Serial.readStringUntil('\n');
     //Serial.println(received);
@@ -117,16 +111,16 @@ void loop() {
   }
 
   if (received.indexOf("Forward") >= 0) { // Forward
-    digitalWrite(D1, HIGH);
+    analogWrite(D1, 150);
     digitalWrite(D2, LOW);
-    digitalWrite(D3, HIGH);
+    analogWrite(D3, 150);
     digitalWrite(D4, LOW);
   }
   else if (received.indexOf("Backward") >= 0) { // Backward
     digitalWrite(D1, LOW);
-    digitalWrite(D2, HIGH);
+    analogWrite(D2, 150);
     digitalWrite(D3, LOW);
-    digitalWrite(D4, HIGH);
+    analogWrite(D4, 150);
   }
   else if (received.indexOf("Right") >= 0) { // Right
     digitalWrite(D1, HIGH);
@@ -141,24 +135,36 @@ void loop() {
     digitalWrite(D4, LOW);
   }
   else if (received.indexOf("Goal") >= 0) { // Pair with goal
-    if (((digitalRead(LIR)) && digitalRead(RIR)) || (dist < 100)) {
-      Serial.println("Stopped");
+    dist = sensor.readRangeSingleMillimeters();
+    if (dist < 50) {
+      Serial.println("Something in front!");
+      received = "Check1";
+      analogWrite(D1, 255);
+      digitalWrite(D2, LOW);
+      digitalWrite(D3, LOW);
+      analogWrite(D4, 255);
+      delay(100);
       digitalWrite(D1, LOW);
       digitalWrite(D2, LOW);
       digitalWrite(D3, LOW);
       digitalWrite(D4, LOW);
+      delay(500);
     }
     else if (digitalRead(RIR)) {
-      analogWrite(D1, 100);
+      delay(50);
+      analogWrite(D1, 255);
       digitalWrite(D2, LOW);
       digitalWrite(D3, LOW);
-      analogWrite(D4, 100);
+      analogWrite(D4, 255);
+      delay(100);
     }
     else if (digitalRead(LIR)) {
+      delay(50);
       digitalWrite(D1, LOW);
-      analogWrite(D2, 100);
-      analogWrite(D3, 100);
+      analogWrite(D2, 255);
+      analogWrite(D3, 255);
       digitalWrite(D4, LOW);
+      delay(100);
     }
     else {
       analogWrite(D1, 50);
@@ -166,14 +172,46 @@ void loop() {
       analogWrite(D3, 50);
       digitalWrite(D4, LOW);
     }
-  } 
+  }
+  else if (received.indexOf("Check1") >= 0) {
+    received = "Check2";
+    digitalWrite(D1, LOW);
+    analogWrite(D2, 100);
+    analogWrite(D3, 100);
+    digitalWrite(D4, LOW);
+    delay(100 + i);
+    digitalWrite(D1, LOW);
+    digitalWrite(D2, LOW);
+    digitalWrite(D3, LOW);
+    digitalWrite(D4, LOW);
+    delay(500);
+
+    i += 10;
+  }
+  else if (received.indexOf("Check2") >= 0) {
+    received = "Check1";
+    analogWrite(D1, 100);
+    digitalWrite(D2, LOW);
+    digitalWrite(D3, LOW);
+    analogWrite(D4, 100);
+    delay(100 + i);
+    digitalWrite(D1, LOW);
+    digitalWrite(D2, LOW);
+    digitalWrite(D3, LOW);
+    digitalWrite(D4, LOW);
+    delay(500);
+
+    i += 10;
+  }
   else {
+    i = 0;
     digitalWrite(D1, LOW);
     digitalWrite(D2, LOW);
     digitalWrite(D3, LOW);
     digitalWrite(D4, LOW);
   }
 
-  
-  
+  if (i > 100) {
+    received = "Stop";
+  }
 }

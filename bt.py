@@ -24,7 +24,7 @@ message = ""
 while read != "1000":
     read = recv_sock.recv(1024)
     read = read.decode("utf-8").strip('\n')
-    print(f"{read}\r")
+    print(f"{read}")
 
     sleep(1)
 

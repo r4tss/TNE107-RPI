@@ -7,6 +7,56 @@ from time import sleep
 import math
 import RPi.GPIO as GPIO
 
+# Takes desired direction and current direction to get angle difference from desired direction
+# Returns this angle difference with positive differences being left turns and negative ones being right turns
+def calcAngleDiff(a1, a2):
+    diff = a1 - a2
+
+    if diff < -180:
+        diff += 360
+
+    print(f"Angle diff: {diff}")
+    return diff
+
+def calcCurDir(x, y, xo, yo):
+    curDir = math.atan2(y - yo, x - xo) * (180/math.pi)
+    if curDir < 0:
+        curDir = curDir + 360
+    if curDir >= 360:
+        curDir = curDir - 360
+
+    print(f"Current angle: {curDir}")
+    return curDir
+
+def adjustAngle(adiff, f, b):
+    if f == True:
+        print("Going forward")
+        if adiff < -10:
+            print("Adjusting to the right")
+            NANO.write(b"Right\n")
+            sleep(abs(adiff) / 90)
+        elif adiff > 10:
+            print("Adjusting to the left")
+            NANO.write(b"Left\n")
+            sleep(abs(adiff) / 90)
+    elif b == True:
+        print("Going backward")
+        if adiff > 10:
+            adiff -= 180
+            print(f"Adjusting to the right {adiff}")
+            # NANO.write(b"Right\n")
+            # sleep(abs(adiff) / 90)
+        elif adiff < -10:
+            adiff += 180
+            print(f"Adjusting to the left {adiff}")
+            # NANO.write(b"Left\n")
+            # sleep(abs(adiff) / 90)
+
+def writeAngleToFile(a):
+    with open("angle_buf.txt", "w") as f:
+        f.write(f"{a}" + '\n')
+    os.rename("angle_buf.txt", "angle.txt")
+
 LED = 17 # Light emitting diode
 PT = 27 # Phototransistor
 
@@ -20,7 +70,7 @@ DWMProcess = subprocess.Popen(["/home/pi/filterpy/bin/python", "-u", "/home/pi/T
 print(f"DWM PID: {DWMProcess.pid}")
 
 # Open serial port to Arduino Nano
-NANO = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
+NANO = serial.Serial('/dev/ttyUSB1', 115200, timeout=30)
 sleep(2)
 
 BluetoothProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/bt.py"], stdout=subprocess.PIPE, stderr=open(os.devnull, 'wb'), text=True)
@@ -49,7 +99,7 @@ curDir = 0
 desDir = 0
 normDir = 0
 
-iteration = 0
+writeAngleToFile(desDir)
 
 if bto.find("Connected") != -1:
     nanoBtMessage = "Bluetooth connected " + bto[13:].translate({ord(c): None for c in ':'}) # Address to send to nano
@@ -83,110 +133,115 @@ if bto.find("Connected") != -1:
 
         if newCommand:
             print(f"Command: {bto}")
-            if bto == "11":
-                # Store current position => old pos
-                # NANO.write(b"Forward\n")
+            if bto == "11": # Go forward
                 if forward == False:
                     oldX = x
                     oldY = y
                 forward = True
                 backward = False
-            elif bto == "22":
-                # Store current position => old pos
-                # NANO.write(b"Backward\n")
+                
+            elif bto == "22": # Go backward
                 if backward == False:
                     oldX = x
                     oldY = y
                 forward = False
                 backward = True
-            elif bto == "33":
+                
+            elif bto == "33": # Turn right 90 degrees
                 desDir = desDir - 90
                 if desDir < 0:
                     desDir = desDir + 360
 
                 curDir = desDir
 
-                with open("angle.txt", "w") as f:
-                    f.write(f"{desDir}" + '\n')
-                    f.close()
+                writeAngleToFile(desDir)
                     
                 NANO.write(b"Stop\n")
                 sleep(0.1)    
                 NANO.write(b"Right\n")
                 sleep(0.95)
                 NANO.write(b"Stop\n")
-            elif bto == "44":
+                
+            elif bto == "44": # Turn left 90 degrees
                 desDir = desDir + 90
                 if desDir >= 360:
                     desDir = desDir - 360
 
                 curDir = desDir
 
-                with open("angle.txt", "w") as f:
-                    f.write(f"{desDir}" + '\n')
-                    f.close()
+                writeAngleToFile(desDir)
 
                 NANO.write(b"Stop\n")
                 sleep(0.1)
                 NANO.write(b"Left\n")
                 sleep(0.9)
                 NANO.write(b"Stop\n")
-            elif bto == "55":
+                
+            elif bto == "55": # Turn right 45 degrees
                 desDir = desDir - 45
                 if desDir < 0:
                     desDir = desDir + 360
 
                 curDir = desDir
 
-                with open("angle.txt", "w") as f:
-                    f.write(f"{desDir}" + '\n')
-                    f.close()
+                writeAngleToFile(desDir)
 
                 NANO.write(b"Stop\n")
                 sleep(0.1)
                 NANO.write(b"Right\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
-            elif bto == "66":
+                
+            elif bto == "66": # Turn left 45 degrees
                 desDir = desDir + 45
                 if desDir >= 360:
                     desDir = desDir - 360
                 
                 curDir = desDir
 
-                with open("angle.txt", "w") as f:
-                    f.write(f"{desDir}" + '\n')
-                    f.close()
+                writeAngleToFile(desDir)
                     
                 NANO.write(b"Stop\n")
                 sleep(0.1)
                 NANO.write(b"Left\n")
                 sleep(0.45)
                 NANO.write(b"Stop\n")
-            elif bto == "420":
+                
+            elif bto == "420": # Communicate with goal
+                # Start goal communication
                 NANO.write(b"Goal\n")
-                print(NANO.readline())
+
+                # Wait for AGV to have detected something in front of it.
+                print(NANO.readline().decode("utf8-").strip())
+
+                # AGV has now started wiggling and we check the phototransistor
+                # to see if the LED has triggered the goal. 
                 GPIO.output(LED, True)
                 goal_read = False
                 while goal_read == False:
                     goal_read = GPIO.input(PT)
+                print("Found goal")
                 GPIO.output(LED, False)
-            elif bto == "0":
+                NANO.write(b"Stop\n")
+                
+            elif bto == "0": # Stop
                 NANO.write(b"Stop\n")
                 forward = False
                 backward = False
-            elif bto == "10":
+                
+            elif bto == "10": # Stop and find current position
                 NANO.write(b"Stop\n")
-                forward = False
-                backward = False
-                sleep(2)
 
-                for i in range(30):
+                # Change number of iterations to change wait time
+                # Readings come every 0.1 seconds, so 30 iterations
+                # means 3 second delay. 
+                for i in range(10):
                     dwm = DWMProcess.stdout.readline().strip("\n")
                 x, y = dwm.split(",")
                 x = int(x)
                 y = int(y)
 
+                print(f"Desired direction {desDir}")
                 curDir = calcCurDir(x, y, oldX, oldY)
 
                 adiff = calcAngleDiff(desDir, curDir)
@@ -196,11 +251,12 @@ if bto.find("Connected") != -1:
                 forward = False
                 backward = False
 
-            elif bto == "98":
+            elif bto == "98": # Turn on LED
                 GPIO.output(LED, True)
                 sleep(1)
                 GPIO.output(LED, False)
 
+        # Check LIDAR data to see if anything is in front or behind AGV
         with open("distances.txt", "r") as f:
             for line in f:
                 a, d = line.split()
@@ -222,17 +278,6 @@ if bto.find("Connected") != -1:
 
         if backward:
             NANO.write(b"Backward\n")
-        
-        print(f"current pos ({x}, {y}) <- old pos ({oldX}, {oldY})")
-        print(f"Current direction: {curDir}")
-        print(f"Normalized direction: {normDir}")
-        print(f"Desired direction: {desDir}")
-        
-        with open("angle.txt", "w") as f:
-            f.write(f"{desDir}" + '\n')
-            f.close()
-
-        # Print current status (current command, heading? position? Could we include a cool progress bar? TO MISSION COMPLETETION?????)
 
     print("Terminating LIDAR process")
     os.kill(LIDARProcess.pid, signal.SIGINT)
@@ -248,45 +293,4 @@ NANO.write(b"Closing down\n")
 sleep(1)
 NANO.close()
 
-
-# Takes desired direction and current direction to get angle difference from desired direction
-# Returns this angle difference with positive differences being left turns and negative ones being right turns
-def calcAngleDiff(a1, a2):
-    diff = a1 - a2
-
-    if diff < -180:
-        diff += 360
-
-    return diff
-
-def calcCurDir(x, y, xo, yo):
-    curDir = math.atan2(y - yo, x - xo) * (180/math.pi)
-    if curDir < 0:
-        curDir = curDir + 360
-    if curDir >= 360:
-        curDir = curDir - 360
-
-    return curDir
-
-def adjustAngle(adiff, f, b):
-    if f:
-        if adiff > 10:
-            print("Adjusting to the right")
-            NANO.write(b"Right\n")
-            sleep(abs(adiff) / 90)
-
-        if normDir < -10:
-            print("Adjusting to the left")
-            NANO.write(b"Left\n")
-            sleep(abs(adiff) / 90)
-    elif b:
-        if adiff < -10:
-            print("Adjusting to the right")
-            NANO.write(b"Right\n")
-            sleep(abs(adiff) / 90)
-
-        if normDir > 10:
-            print("Adjusting to the left")
-            NANO.write(b"Left\n")
-            sleep(abs(adiff) / 90)
 
