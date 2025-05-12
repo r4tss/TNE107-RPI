@@ -167,7 +167,7 @@ if bto.find("Connected") != -1:
                 sleep(0.1)    
                 NANO.write(b"Right\n")
                 NANO.write(f"Current status {xstatus} {ystatus} {dirstatus}\n".encode())
-                sleep(0.9)
+                sleep(1)
                 NANO.write(b"Stop\n")
                 
             elif bto == "44": # Turn left 90 degrees
@@ -183,7 +183,7 @@ if bto.find("Connected") != -1:
                 sleep(0.1)
                 NANO.write(b"Left\n")
                 NANO.write(f"Current status {xstatus} {ystatus} {dirstatus}\n".encode())
-                sleep(0.9)
+                sleep(1)
                 NANO.write(b"Stop\n")
                 
             elif bto == "55": # Turn right 45 degrees
