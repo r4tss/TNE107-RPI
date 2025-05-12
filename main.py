@@ -43,13 +43,13 @@ def adjustAngle(adiff, f, b):
             NANO.write(b"Stop\n")
     elif b == True:
         print("Going backward")
-        if adiff > 0:
+        if adiff < 0:
             adiff -= 180
             print(f"Adjusting to the right {adiff}")
             NANO.write(b"Right\n")
             sleep(abs(adiff) / 90)
             NANO.write(b"Stop\n")
-        elif adiff < 0:
+        elif adiff > 0:
             adiff += 180
             print(f"Adjusting to the left {adiff}")
             NANO.write(b"Left\n")
@@ -107,6 +107,8 @@ writeAngleToFile(desDir)
 
 iteration = 1
 delay = 100 # Delay status command to every 20 loops
+
+calibrationBudget = 10
 
 if bto.find("Connected") != -1:
     nanoBtMessage = "Bluetooth connected " + bto[13:].translate({ord(c): None for c in ':'}) # Address to send to nano
@@ -218,7 +220,62 @@ if bto.find("Connected") != -1:
                 sleep(0.5)
                 NANO.write(b"Stop\n")
                 
-            elif bto == "420": # Communicate with goal
+            elif bto == "0": # Stop
+                NANO.write(b"Stop\n")
+                forward = False
+                backward = False
+                
+            elif bto == "10": # Stop and find current position
+                NANO.write(b"Stop\n")
+
+                xmean = 0
+                ymean = 0
+                # Change number of iterations to change wait time
+                # Readings come every 0.1 seconds, so 30 iterations
+                # means 3 second delay. 
+                for i in range(calibrationBudget):
+                    dwm = DWMProcess.stdout.readline().strip("\n")
+                    x, y = dwm.split(",")
+                    x = int(x)
+                    y = int(y)
+                    
+                    xmean += x
+                    ymean += y
+
+                xmean = xmean / calibrationBudget
+                ymean = ymean / calibrationBudget
+                
+                print(f"Desired direction {desDir}")
+                curDir = calcCurDir(x, y, oldX, oldY)
+
+                adiff = calcAngleDiff(desDir, curDir)
+
+                adjustAngle(adiff, forward, backward)
+
+                forward = False
+                backward = False
+
+            elif "98" in bto:
+                curDir = calcCurDir(x, y, oldX, oldY)
+                
+                _, gx, gy, gDir = bto.split()
+
+                gDir += 180
+                if gDir > 360:
+                    gDir -= 360
+
+                # N = 90
+
+                gx += 15 * math.cos(math.radians(gDir))
+                gy += 15 * math.sin(math.radians(gDir))
+
+                gDir = calcCurDir(gx, gy, x, y)
+
+                adiff = calcAngleDiff(gDir, curDir)
+
+                # We want to go forward towards the goal
+                adjustAngle(adiff, True, False)
+                
                 # Start goal communication
                 NANO.write(b"Start goal\n")
 
@@ -233,38 +290,8 @@ if bto.find("Connected") != -1:
                     goal_read = GPIO.input(PT)
                 GPIO.output(LED, False)
                 NANO.write(b"Found goal\n")
-                
-            elif bto == "0": # Stop
-                NANO.write(b"Stop\n")
-                forward = False
-                backward = False
-                
-            elif bto == "10": # Stop and find current position
-                NANO.write(b"Stop\n")
 
-                # Change number of iterations to change wait time
-                # Readings come every 0.1 seconds, so 30 iterations
-                # means 3 second delay. 
-                for i in range(10):
-                    dwm = DWMProcess.stdout.readline().strip("\n")
-                x, y = dwm.split(",")
-                x = int(x)
-                y = int(y)
-
-                print(f"Desired direction {desDir}")
-                curDir = calcCurDir(x, y, oldX, oldY)
-
-                adiff = calcAngleDiff(desDir, curDir)
-
-                adjustAngle(adiff, forward, backward)
-
-                forward = False
-                backward = False
-
-            elif bto == "98": # Turn on LED
-                GPIO.output(LED, True)
-                sleep(1)
-                GPIO.output(LED, False)
+                # Send something to ÖS
 
         # Check LIDAR data to see if anything is in front or behind AGV
         with open("distances.txt", "r") as f:

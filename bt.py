@@ -28,10 +28,10 @@ while read != "1000":
 
     sleep(1)
 
-    # print(f"Sending: 'Acknowledge: {read}'")
     # Acknowledge ÖS command
     recv_sock.send(f"{read}, ".encode()) # Remember NEW LINE for ÖS to be able to read lines.
-    # message = message + read
+
+    # TODO Maybe obstruction ack can be sent here?
 
     # Send DWM data
     if read == "10":
