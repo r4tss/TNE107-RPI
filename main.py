@@ -291,7 +291,7 @@ if bto.find("Connected") != -1:
 
         xstatus = str(x).zfill(4)
         ystatus = str(y).zfill(4)
-        dirstatus = str(curDir).zfill(3)
+        dirstatus = str(int(curDir)).zfill(3)
         if iteration > delay:
             NANO.write(f"Current status {xstatus} {ystatus} {dirstatus}\n".encode())
             iteration = 0

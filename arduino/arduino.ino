@@ -251,6 +251,48 @@ void loop() {
       }
       else if (digitalRead(RIR)) {
         delay(50);
+        analogWrite(D1, 100);
+        digitalWrite(D2, LOW);
+        digitalWrite(D3, LOW);
+        analogWrite(D4, 150);
+        delay(100);
+      }
+      else if (digitalRead(LIR)) {
+        delay(50);
+        digitalWrite(D1, LOW);
+        analogWrite(D2, 150);
+        analogWrite(D3, 100);
+        digitalWrite(D4, LOW);
+        delay(100);
+      }
+      else if (digitalRead(FRIR)) {
+        delay(50);
+        analogWrite(D1, 200);
+        digitalWrite(D2, LOW);
+        digitalWrite(D3, LOW);
+        analogWrite(D4, 255);
+        delay(150);
+      }
+      else if (digitalRead(FLIR)) {
+        delay(50);
+        digitalWrite(D1, LOW);
+        analogWrite(D2, 255);
+        analogWrite(D3, 200);
+        digitalWrite(D4, LOW);
+        delay(150);
+      }
+      else {
+        analogWrite(D1, 50);
+        digitalWrite(D2, LOW);
+        analogWrite(D3, 50);
+        digitalWrite(D4, LOW);
+      }
+      break;
+    case checkRight:
+      command = checkLeft;
+
+      if (digitalRead(RIR)) {
+        delay(50);
         analogWrite(D1, 150);
         digitalWrite(D2, LOW);
         digitalWrite(D3, LOW);
@@ -282,43 +324,71 @@ void loop() {
         delay(150);
       }
       else {
-        analogWrite(D1, 50);
+        analogWrite(D1, 100);
         digitalWrite(D2, LOW);
-        analogWrite(D3, 50);
-        digitalWrite(D4, LOW);
+        digitalWrite(D3, LOW);
+        analogWrite(D4, 100);
+        delay(100 + i);
+        i += 10;
       }
-      break;
-    case checkRight:
-      command = checkLeft;
 
-      analogWrite(D1, 100);
-      digitalWrite(D2, LOW);
-      digitalWrite(D3, LOW);
-      analogWrite(D4, 100);
-      delay(100 + i);
       digitalWrite(D1, LOW);
       digitalWrite(D2, LOW);
       digitalWrite(D3, LOW);
       digitalWrite(D4, LOW);
-      delay(500);
+      delay(200);
 
-      i += 10;
+      
       break;
     case checkLeft:
       command = checkRight;
 
-      digitalWrite(D1, LOW);
-      analogWrite(D2, 100);
-      analogWrite(D3, 100);
-      digitalWrite(D4, LOW);
-      delay(100 + i);
+      if (digitalRead(RIR)) {
+        delay(50);
+        analogWrite(D1, 150);
+        digitalWrite(D2, LOW);
+        digitalWrite(D3, LOW);
+        analogWrite(D4, 150);
+        delay(100);
+      }
+      else if (digitalRead(LIR)) {
+        delay(50);
+        digitalWrite(D1, LOW);
+        analogWrite(D2, 150);
+        analogWrite(D3, 150);
+        digitalWrite(D4, LOW);
+        delay(100);
+      }
+      else if (digitalRead(FRIR)) {
+        delay(50);
+        analogWrite(D1, 255);
+        digitalWrite(D2, LOW);
+        digitalWrite(D3, LOW);
+        analogWrite(D4, 255);
+        delay(150);
+      }
+      else if (digitalRead(FLIR)) {
+        delay(50);
+        digitalWrite(D1, LOW);
+        analogWrite(D2, 255);
+        analogWrite(D3, 255);
+        digitalWrite(D4, LOW);
+        delay(150);
+      }
+      else {
+        digitalWrite(D1, LOW);
+        analogWrite(D2, 100);
+        analogWrite(D3, 100);
+        digitalWrite(D4, LOW);
+        delay(100 + i);
+        i += 10;
+      }
+
       digitalWrite(D1, LOW);
       digitalWrite(D2, LOW);
       digitalWrite(D3, LOW);
       digitalWrite(D4, LOW);
       delay(500);
-
-      i += 10;
       break;
     default:
       digitalWrite(D1, LOW);
