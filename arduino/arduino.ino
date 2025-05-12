@@ -14,6 +14,7 @@ String received = "";
 String hostAddr = "";
 String xstatus = "0000";
 String ystatus = "0000";
+String dir = "000";
 
 enum statusDialog { booting, btUp, btConnected, shutDown, startingGoal, foundGoal, currentStatus, obstruction };
 enum availCommand { forward, backward, right, left, goal, checkRight, checkLeft, stop };
@@ -63,6 +64,8 @@ void setup() {
   lcd.init();
   lcd.backlight();
   lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("AGV booting!");
   dots = true;
 
   status = booting;
@@ -73,40 +76,106 @@ void loop() {
   if (Serial.available() > 0) {
     received = Serial.readStringUntil('\n');
     // Serial.println(received);
-    lcd.clear();
   }
 
   // Status states handling
   if (received == "Bluetooth up") {
     status = btUp;
     dots = true;
+
+    lcd.clear();
+    lcd.setCursor(2, 0);
+    lcd.print("Bluetooth up");
+    lcd.setCursor(6, 1);
   }
   else if (received.indexOf("Bluetooth connected") >= 0) {
     status = btConnected;
     hostAddr = received.substring(20, 32);
     dots = false;
+
+    lcd.clear();
+    lcd.setCursor(2, 0);
+    lcd.print("Connected to");
+    lcd.setCursor(2, 1);
+    lcd.print(hostAddr); // Message as 'Bluetooth connected XXXXXXXXXXXX' with MAC-address.
   }
   else if (received == "Closing down") {
     status = shutDown;
     dots = true;
+
+    lcd.clear();
+    lcd.setCursor(1, 0);
+    lcd.print("Shutting down!");
+
+    digitalWrite(D1, LOW);
+    digitalWrite(D2, LOW);
+    digitalWrite(D3, LOW);
+    digitalWrite(D4, LOW);
+
+    delay(5000);
+
+    lcd.clear();
+    lcd.setCursor(2, 0);
+    lcd.print("AGV booting!");
   }
   else if (received == "Start goal") {
     status = startingGoal;
     dots = true;
+
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Looking for goal");
   }
   else if (received == "Found goal") {
     status = foundGoal;
     dots = false;
+
+    lcd.clear();
+    lcd.setCursor(3, 0);
+    lcd.print("Found goal");
   }
   else if (received.indexOf("Current status") >= 0) {
     status = currentStatus;
-    xstatus = received.substring(15, 18);
-    ystatus = received.substring(20, 23);
+    xstatus = received.substring(15, 19);
+    ystatus = received.substring(20, 24);
+    dir = received.substring(25, 28);
     dots = false;
+
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    // lcd.print("Status");
+    switch (command) {
+      case forward:
+        lcd.print("Forward");
+        break;
+      case backward:
+        lcd.print("Backward");
+        break;
+      case left:
+        lcd.print("Left");
+        break;
+      case right:
+        lcd.print("Right");
+        break;
+      case stop:
+        lcd.print("Stop");
+        break;
+    }
+    lcd.setCursor(13, 0);
+    lcd.print(dir);
+    lcd.setCursor(0, 1);
+    lcd.print("x:");
+    lcd.print(xstatus);
+    lcd.print(", y:");
+    lcd.print(ystatus);
   }
   else if (received == "Obstruction found") {
     status = obstruction;
     dots = false;
+
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Obstruction");
   }
 
   // Command state handling
@@ -133,58 +202,6 @@ void loop() {
   }
 
   received = "";
-
-  // Status state logic
-  switch (status) {
-    case booting:
-      lcd.setCursor(2, 0);
-      lcd.print("AGV booting!");
-      break;
-    case btUp:
-      lcd.setCursor(2, 0);
-      lcd.print("Bluetooth up");
-      lcd.setCursor(6, 1);
-      lcd.print("....");
-      emptySpace = 0;
-      break;
-    case btConnected:
-      lcd.setCursor(2, 0);
-      lcd.print("Connected to");
-      lcd.setCursor(2, 1);
-      lcd.print(hostAddr); // Message as 'Bluetooth connected XXXXXXXXXXXX' with MAC-address.
-      break;
-    case shutDown:
-      lcd.setCursor(1, 0);
-      lcd.print("Shutting down!");
-
-      digitalWrite(D1, LOW);
-      digitalWrite(D2, LOW);
-      digitalWrite(D3, LOW);
-      digitalWrite(D4, LOW);
-      break;
-    case startingGoal:
-      lcd.setCursor(0, 0);
-      lcd.print("Looking for goal");
-      break;
-    case foundGoal:
-      lcd.setCursor(3, 0);
-      lcd.print("Found goal");
-      break;
-    case currentStatus:
-      lcd.setCursor(0, 0);
-      lcd.print("Status");
-      lcd.setCursor(0, 1);
-      lcd.print(xstatus);
-      lcd.print(ystatus);
-      break;
-    case obstruction:
-      lcd.setCursor(0, 0);
-      lcd.print("Obstruction");
-      break;
-    default:
-      dots = false;
-      break;
-  }
 
   // Command state logic
   switch (command) {

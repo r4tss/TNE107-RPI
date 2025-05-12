@@ -162,6 +162,7 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
                 sleep(0.1)    
                 NANO.write(b"Right\n")
+                NANO.write(f"Current status {xstatus} {ystatus} {dirstatus}\n".encode())
                 sleep(0.9)
                 NANO.write(b"Stop\n")
                 
@@ -177,6 +178,7 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
                 sleep(0.1)
                 NANO.write(b"Left\n")
+                NANO.write(f"Current status {xstatus} {ystatus} {dirstatus}\n".encode())
                 sleep(0.9)
                 NANO.write(b"Stop\n")
                 
@@ -192,6 +194,7 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
                 sleep(0.1)
                 NANO.write(b"Right\n")
+                NANO.write(f"Current status {xstatus} {ystatus} {dirstatus}\n".encode())
                 sleep(0.5)
                 NANO.write(b"Stop\n")
                 
@@ -207,6 +210,7 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
                 sleep(0.1)
                 NANO.write(b"Left\n")
+                NANO.write(f"Current status {xstatus} {ystatus} {dirstatus}\n".encode())
                 sleep(0.5)
                 NANO.write(b"Stop\n")
                 
@@ -283,8 +287,9 @@ if bto.find("Connected") != -1:
 
         xstatus = str(x).zfill(4)
         ystatus = str(y).zfill(4)
+        dirstatus = str(curDir).zfill(3)
         if iteration > delay:
-            NANO.write(f"Current status {xstatus} {ystatus}\n".encode())
+            NANO.write(f"Current status {xstatus} {ystatus} {dirstatus}\n".encode())
         iteration += 1
 
     print("Terminating LIDAR process")
