@@ -163,7 +163,7 @@ void loop() {
     }
     lcd.setCursor(13, 0);
     lcd.print(dir);
-    lcd.setCursor(0, 1);
+    lcd.setCursor(1, 1);
     lcd.print("x:");
     lcd.print(xstatus);
     lcd.print(", y:");

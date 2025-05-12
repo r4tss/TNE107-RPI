@@ -35,22 +35,26 @@ def adjustAngle(adiff, f, b):
             print("Adjusting to the right")
             NANO.write(b"Right\n")
             sleep(abs(adiff) / 90)
+            NANO.write(b"Stop\n")
         elif adiff > 10:
             print("Adjusting to the left")
             NANO.write(b"Left\n")
             sleep(abs(adiff) / 90)
+            NANO.write(b"Stop\n")
     elif b == True:
         print("Going backward")
         if adiff > 10:
             adiff -= 180
             print(f"Adjusting to the right {adiff}")
-            # NANO.write(b"Right\n")
-            # sleep(abs(adiff) / 90)
+            NANO.write(b"Right\n")
+            sleep(abs(adiff) / 90)
+            NANO.write(b"Stop\n")
         elif adiff < -10:
             adiff += 180
             print(f"Adjusting to the left {adiff}")
-            # NANO.write(b"Left\n")
-            # sleep(abs(adiff) / 90)
+            NANO.write(b"Left\n")
+            sleep(abs(adiff) / 90)
+            NANO.write(b"Stop\n")
 
 def writeAngleToFile(a):
     with open("angle_buf.txt", "w") as f:
