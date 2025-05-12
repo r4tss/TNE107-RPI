@@ -29,7 +29,7 @@ kf.x = np.array([0., 0.])
 kf.P *= 1000
 
 # Noise matrix
-kf.R = np.diag([25, 25])
+kf.R = np.diag([100, 100])
 
 kf.Q = np.eye(2)
 
@@ -37,7 +37,7 @@ position = deque([(0, 0)])
 
 updRate = "1 1" # Active Idle
 
-with serial.Serial('/dev/ttyACM0', 115200, timeout = 1) as s:
+with serial.Serial('/dev/ttyACM1', 115200, timeout = 1) as s:
 
     # print(f"Opened serial port {s.name}")
 

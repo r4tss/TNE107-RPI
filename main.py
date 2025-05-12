@@ -101,6 +101,9 @@ normDir = 0
 
 writeAngleToFile(desDir)
 
+iteration = 1
+delay = 20 # Delay status command to every 20 loops
+
 if bto.find("Connected") != -1:
     nanoBtMessage = "Bluetooth connected " + bto[13:].translate({ord(c): None for c in ':'}) # Address to send to nano
     NANO.write(nanoBtMessage.encode())
@@ -159,7 +162,7 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
                 sleep(0.1)    
                 NANO.write(b"Right\n")
-                sleep(0.95)
+                sleep(0.9)
                 NANO.write(b"Stop\n")
                 
             elif bto == "44": # Turn left 90 degrees
@@ -189,7 +192,7 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
                 sleep(0.1)
                 NANO.write(b"Right\n")
-                sleep(0.45)
+                sleep(0.5)
                 NANO.write(b"Stop\n")
                 
             elif bto == "66": # Turn left 45 degrees
@@ -204,12 +207,12 @@ if bto.find("Connected") != -1:
                 NANO.write(b"Stop\n")
                 sleep(0.1)
                 NANO.write(b"Left\n")
-                sleep(0.45)
+                sleep(0.5)
                 NANO.write(b"Stop\n")
                 
             elif bto == "420": # Communicate with goal
                 # Start goal communication
-                NANO.write(b"Goal\n")
+                NANO.write(b"Start goal\n")
 
                 # Wait for AGV to have detected something in front of it.
                 print(NANO.readline().decode("utf8-").strip())
@@ -220,9 +223,8 @@ if bto.find("Connected") != -1:
                 goal_read = False
                 while goal_read == False:
                     goal_read = GPIO.input(PT)
-                print("Found goal")
                 GPIO.output(LED, False)
-                NANO.write(b"Stop\n")
+                NANO.write(b"Found goal\n")
                 
             elif bto == "0": # Stop
                 NANO.write(b"Stop\n")
@@ -278,6 +280,12 @@ if bto.find("Connected") != -1:
 
         if backward:
             NANO.write(b"Backward\n")
+
+        xstatus = str(x).zfill(4)
+        ystatus = str(y).zfill(4)
+        if iteration > delay:
+            NANO.write(f"Current status {xstatus} {ystatus}\n".encode())
+        iteration += 1
 
     print("Terminating LIDAR process")
     os.kill(LIDARProcess.pid, signal.SIGINT)
