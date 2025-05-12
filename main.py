@@ -106,7 +106,7 @@ normDir = 0
 writeAngleToFile(desDir)
 
 iteration = 1
-delay = 20 # Delay status command to every 20 loops
+delay = 100 # Delay status command to every 20 loops
 
 if bto.find("Connected") != -1:
     nanoBtMessage = "Bluetooth connected " + bto[13:].translate({ord(c): None for c in ':'}) # Address to send to nano
@@ -294,6 +294,7 @@ if bto.find("Connected") != -1:
         dirstatus = str(curDir).zfill(3)
         if iteration > delay:
             NANO.write(f"Current status {xstatus} {ystatus} {dirstatus}\n".encode())
+            iteration = 0
         iteration += 1
 
     print("Terminating LIDAR process")
