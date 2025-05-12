@@ -70,7 +70,7 @@ DWMProcess = subprocess.Popen(["/home/pi/filterpy/bin/python", "-u", "/home/pi/T
 print(f"DWM PID: {DWMProcess.pid}")
 
 # Open serial port to Arduino Nano
-NANO = serial.Serial('/dev/ttyUSB1', 115200, timeout=30)
+NANO = serial.Serial('/dev/ttyACM0', 115200, timeout=30)
 sleep(2)
 
 BluetoothProcess = subprocess.Popen(["python", "-u", "/home/pi/TNE107-RPI/bt.py"], stdout=subprocess.PIPE, stderr=open(os.devnull, 'wb'), text=True)
