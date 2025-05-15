@@ -300,12 +300,12 @@ if bto.find("Connected") != -1:
                 a = int(a)
                 d = int(d)
 
-                if (a < 25 or a > 335) and (d > 0 and d < 300):
+                if (a < 25 or a > 335) and (d > 0 and d < 150):
                     forward = False
                     if backward == False:
                         NANO.write(b"Stop\n")
 
-                if ((a > 155 and a < 165) or (a > 195 and a < 205)) and (d > 0 and d < 300):
+                if ((a > 155 and a < 165) or (a > 195 and a < 205)) and (d > 0 and d < 150):
                     backward = False
                     if forward == False:
                         NANO.write(b"Stop\n")
