@@ -45,14 +45,15 @@ def adjustAngle(adiff, f, b):
         print("Going backward")
         if adiff < 0:
             adiff += 180
-            print(f"Adjusting to the right {adiff}")
-            NANO.write(b"Right\n")
-            sleep(abs(adiff) / 90)
-            NANO.write(b"Stop\n")
-        elif adiff > 0:
-            adiff -= 180
             print(f"Adjusting to the left {adiff}")
             NANO.write(b"Left\n")
+            sleep(abs(adiff) / 90)
+            NANO.write(b"Stop\n")
+
+        elif adiff > 0:
+            adiff -= 180
+            print(f"Adjusting to the right {adiff}")
+            NANO.write(b"Right\n")
             sleep(abs(adiff) / 90)
             NANO.write(b"Stop\n")
 
@@ -324,7 +325,12 @@ if bto.find("Connected") != -1:
 
         xstatus = str(x).zfill(4)
         ystatus = str(y).zfill(4)
-        dirstatus = str(int(curDir)).zfill(3)
+        dirstatus = int(curDir)
+        if backward:
+            dirstatus -= 180
+            if dirstatus < 0:
+                dirstatus += 360
+        dirstatus = str(dirstatus).zfill(3)
         if iteration > delay:
             NANO.write(f"Current status {xstatus} {ystatus} {dirstatus}\n".encode())
             iteration = 0
