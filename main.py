@@ -44,13 +44,13 @@ def adjustAngle(adiff, f, b):
     elif b == True:
         print("Going backward")
         if adiff < 0:
-            adiff -= 180
+            adiff += 180
             print(f"Adjusting to the right {adiff}")
             NANO.write(b"Right\n")
             sleep(abs(adiff) / 90)
             NANO.write(b"Stop\n")
         elif adiff > 0:
-            adiff += 180
+            adiff -= 180
             print(f"Adjusting to the left {adiff}")
             NANO.write(b"Left\n")
             sleep(abs(adiff) / 90)
@@ -304,10 +304,16 @@ if bto.find("Connected") != -1:
                     forward = False
                     if backward == False:
                         NANO.write(b"Stop\n")
+                        NANO.write(b"Backward\n")
+                        sleep(0.5)
+                        NANO.write(b"Stop\n")
 
                 if ((a > 155 and a < 165) or (a > 195 and a < 205)) and (d > 0 and d < 150):
                     backward = False
                     if forward == False:
+                        NANO.write(b"Stop\n")
+                        NANO.write(b"Forward\n")
+                        sleep(0.5)
                         NANO.write(b"Stop\n")
     
         if forward:
