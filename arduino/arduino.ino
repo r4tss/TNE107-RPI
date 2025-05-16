@@ -233,7 +233,7 @@ void loop() {
       // Get TOF sensor reading in front of AGV
       dist = sensor.readRangeSingleMillimeters();
 
-      if (dist < 100) {
+      if (dist < 60) {
         Serial.println("Something in front!");
         command = checkLeft;
         analogWrite(D1, 255);

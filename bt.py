@@ -26,12 +26,25 @@ while read != "1000":
     read = read.decode("utf-8").strip('\n')
     print(f"{read}")
 
-    sleep(1)
+    if "98" in read:
+        while read == "98":
+            read = sys.stdin.readline().strip('\n')
+            print(f"{read}")
+            with open("position.txt", "r") as f:
+                for line in f:
+                    line = line.strip("\n")
+                    x, y = line.split(",")
+                    x = int(x)
+                    y = int(y)
+                    recv_sock.send(f"98, {x}, {y}\n".encode())
+                    # message = message + f"{x}, {y}, "
+                f.close()
+        read = "99"
+    else:
+        sleep(0.5)
 
     # Acknowledge ÖS command
     recv_sock.send(f"{read}, ".encode()) # Remember NEW LINE for ÖS to be able to read lines.
-
-    # TODO Maybe obstruction ack can be sent here?
 
     # Send DWM data
     if read == "10":
